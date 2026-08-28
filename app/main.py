@@ -157,22 +157,36 @@ async def _build_full_text_input(picked: list[dict]) -> list[dict]:
     ]
 
 
-@app.get("/prompt", response_class=HTMLResponse)
-async def prompt_page(ids: str, target: str | None = None):
-    """API 비용 없이 ChatGPT/Claude로 넘기는 핸드오프용 페이지. 카드 화면에서는 이 페이지로
-    가는 짧은 링크만 ChatGPT/Claude에 전달한다(전체 프롬프트를 URL에 실으면 한글 퍼센트
-    인코딩 때문에 URL이 감당 못 할 만큼 길어짐). 이 페이지 자체가 선택한 글들의 원문 링크와
-    원문 본문 전체(가능한 소스는 스크레이핑, 안 되면 RSS 발췌로 대체)를 담아 분석 지시문을
-    완성한다 — DB 저장 없이 매 요청마다 ids로부터 그대로 다시 만든다.
-    target=claude면 결과를 마크다운 아티팩트로 만들어달라는 지시를 덧붙인다(Claude 전용
-    기능이라 ChatGPT엔 안 씀)."""
+async def _build_prompt_data(ids: str, target: str | None) -> tuple[list[dict], str]:
+    """선택한 글들의 원문 링크·본문 전체(가능한 소스는 스크레이핑, 안 되면 RSS 발췌로 대체)로
+    분석 지시문을 만든다 — DB 저장 없이 매 요청마다 ids로부터 그대로 다시 만든다. `/prompt`
+    (ChatGPT/Claude가 여는 페이지)와 `/api/prompt`(히스토리 화면이 같은 내용을 인라인으로
+    보여줄 때 쓰는 JSON)가 공유한다."""
     id_list = [x for x in ids.split(",") if x]
     picked = _resolve_picked(id_list)
     if not picked:
         raise HTTPException(status_code=404, detail="no valid items")
-
     full_input = await _build_full_text_input(picked)
     prompt_text = summarize.build_trend_prompt_for_chat(full_input, want_artifact=(target == "claude"))
+    return full_input, prompt_text
+
+
+@app.get("/api/prompt")
+async def api_prompt(ids: str, target: str | None = None):
+    full_input, prompt_text = await _build_prompt_data(ids, target)
+    return {
+        "items": [{"source": i["source"], "title": i["title"], "url": i["url"]} for i in full_input],
+        "promptText": prompt_text,
+    }
+
+
+@app.get("/prompt", response_class=HTMLResponse)
+async def prompt_page(ids: str, target: str | None = None):
+    """API 비용 없이 ChatGPT/Claude로 넘기는 핸드오프용 페이지. 카드 화면에서는 이 페이지로
+    가는 짧은 링크만 ChatGPT/Claude에 전달한다(전체 프롬프트를 URL에 실으면 한글 퍼센트
+    인코딩 때문에 URL이 감당 못 할 만큼 길어짐). target=claude면 결과를 마크다운 아티팩트로
+    만들어달라는 지시를 덧붙인다(Claude 전용 기능이라 ChatGPT엔 안 씀)."""
+    full_input, prompt_text = await _build_prompt_data(ids, target)
 
     sources_html = "".join(
         f'<li><span class="src">[{html_lib.escape(SOURCE_LABEL.get(i["source"], i["source"]))}]</span> '

@@ -1,6 +1,7 @@
-// 장바구니 히스토리(Obsidian 스타일 SNB) 화면 로직. ChatGPT/Claude로 보낼 때 어떤 글
-// 조합을 보냈는지의 기록이다 — OpenAI 분석 결과 자체는 없다(외부 챗에만 남음).
-// promptPageUrl/openHandoff 등은 common.js 공유("다시 열기"가 app.js의 핸드오프와 동일 로직).
+// 히스토리(Obsidian 스타일 SNB) 화면 로직. ChatGPT/Claude로 보낼 때 어떤 글 조합을
+// 보냈는지의 기록이다 — OpenAI 분석 결과 자체는 없다(외부 챗에만 남음), 대신 프리필에
+// 담기는 내용(기사 목록 + 프롬프트 전문)을 그 자리에서 다시 만들어 보여준다.
+// apiPromptData/openHandoff 등은 common.js 공유("다시 열기"가 app.js의 핸드오프와 동일 로직).
 
 let historyCache = [];
 let activeId = null;
@@ -32,13 +33,10 @@ function methodLabel(method) {
   return null;
 }
 
-// entry.intro/insights는 예전(OpenAI로 직접 분석하던 시절) 히스토리에만 있다 — 그 기능은
-// 없앴지만 예전 데이터가 남아있을 수 있어 있으면 그대로 보여준다(하위 호환).
 function resultHtml(entry) {
   const items = entry.selectedItems || [];
   const ids = items.map((i) => i.id).filter(Boolean);
   const methodBadge = methodLabel(entry.method);
-  const hasLegacyResult = entry.intro || (entry.insights && entry.insights.length);
   return `
     <div class="result-meta">
       <span class="result-date">${formatDateTime(entry.createdAt)}</span>
@@ -51,13 +49,40 @@ function resultHtml(entry) {
       <div class="reopen-actions">
         <button class="method-option-inline" data-reopen="chatgpt">ChatGPT로 다시 열기</button>
         <button class="method-option-inline" data-reopen="claude">Claude로 다시 열기</button>
+        <button class="method-option-inline" id="copyPromptBtn" disabled>프롬프트 복사</button>
       </div>
-      <a class="prompt-link" href="${escapeHtml(promptPageUrl(ids))}" target="_blank" rel="noopener noreferrer">프리필 링크(프롬프트 페이지) 열기 ↗</a>
+      <div class="prompt-preview-label">프리필 링크에 담기는 내용</div>
+      <div id="promptPreview" class="prompt-preview"><span class="spinner"></span>불러오는 중...</div>
     </div>` : ""}
-    ${hasLegacyResult ? `
-    <p class="trend-intro">${escapeHtml(entry.intro || "")}</p>
-    <div class="insight-list">${(entry.insights || []).map(insightCardHtml).join("")}</div>` : ""}
   `;
+}
+
+// /prompt 페이지(ChatGPT/Claude가 여는 그 페이지)와 완전히 같은 내용을 그 자리에서
+// 바로 보여준다 — 매번 ids로부터 다시 만들어서 저장 없이도 항상 최신 원문을 반영한다.
+async function loadPromptPreview(entry) {
+  const ids = (entry.selectedItems || []).map((i) => i.id).filter(Boolean);
+  const el = $("#promptPreview");
+  if (!el) return;
+  let data;
+  try {
+    data = await apiPromptData(ids);
+  } catch (e) {
+    el.innerHTML = `<div class="empty-state">${escapeHtml(e.message)}</div>`;
+    return;
+  }
+  el.innerHTML = `<pre class="prompt-text">${escapeHtml(data.promptText)}</pre>`;
+  const copyBtn = $("#copyPromptBtn");
+  if (copyBtn) {
+    copyBtn.disabled = false;
+    copyBtn.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(data.promptText);
+        showToastFallback("프롬프트를 복사했어요.");
+      } catch (e) {
+        showToastFallback(e.message);
+      }
+    });
+  }
 }
 
 function renderCurrent(entry) {
@@ -65,12 +90,13 @@ function renderCurrent(entry) {
   if (!entry) {
     container.innerHTML = `
       <div class="empty-state">
-        아직 장바구니 히스토리가 없습니다.<br>
+        아직 히스토리가 없습니다.<br>
         <a href="index.html">카드에서 글을 선택하고 ChatGPT/Claude로 보내보세요 →</a>
       </div>`;
     return;
   }
   container.innerHTML = resultHtml(entry);
+  loadPromptPreview(entry);
 }
 
 function historyItemHtml(entry) {
@@ -131,7 +157,7 @@ async function init() {
 
   $("#clearHistoryBtn").addEventListener("click", async () => {
     if (historyCache.length === 0) return;
-    if (!confirm("저장된 장바구니 히스토리를 모두 지울까요?")) return;
+    if (!confirm("저장된 히스토리를 모두 지울까요?")) return;
     try {
       await apiHistoryClear();
     } catch (e) {

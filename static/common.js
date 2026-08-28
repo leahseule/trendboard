@@ -11,20 +11,7 @@ function escapeHtml(str) {
   return String(str ?? "").replace(/[&<>"']/g, (c) => map[c]);
 }
 
-function insightCardHtml(insight) {
-  const tags = (insight.tags || []).map((k) => `<span class="keyword-chip">${escapeHtml(k)}</span>`).join("");
-  return `
-    <div class="insight-card">
-      <div class="insight-slot">${escapeHtml(insight.slot)}</div>
-      <div class="keywords">${tags}</div>
-      <div class="insight-row"><span class="insight-label">무엇이 보이는가</span><p>${escapeHtml(insight.whatIsSeen)}</p></div>
-      <div class="insight-row"><span class="insight-label">왜 이게 중요한가</span><p>${escapeHtml(insight.whyItMatters)}</p></div>
-      <div class="insight-row"><span class="insight-label">어디로 이어지는가</span><p>${escapeHtml(insight.whereItLeads)}</p></div>
-      <div class="insight-row critical"><span class="insight-label">비판적으로 볼 지점</span><p>${escapeHtml(insight.criticalView)}</p></div>
-    </div>`;
-}
-
-// API 비용 없이 ChatGPT/Claude로 넘기는 핸드오프 링크 3종. 카드 화면(app.js)과 장바구니
+// API 비용 없이 ChatGPT/Claude로 넘기는 핸드오프 링크 3종. 카드 화면(app.js)과
 // 히스토리(trend.js)가 공유한다 — 히스토리는 예전 조합을 "다시 열기"할 때 같은 함수를 씀.
 // 한글 프롬프트 전체를 URL에 실으면 퍼센트 인코딩 때문에 글자당 9배로 불어나 링크가 안 열릴
 // 수 있어서, ChatGPT/Claude에는 우리가 호스팅하는 /prompt 페이지로 가는 "짧은 링크"만 준다.
@@ -39,6 +26,19 @@ function promptPageUrl(ids, target) {
 function handoffMessage(ids, target) {
   const artifactNote = target === "claude" ? " 결과는 채팅 답변 대신 마크다운 아티팩트로 만들어서 보여줘." : "";
   return `아래 링크 페이지에 있는 글들의 원문 링크와 본문 전체를 참고해서, 페이지에 안내된 방식대로 분석해줘.${artifactNote}\n${promptPageUrl(ids, target)}`;
+}
+
+// /prompt 페이지와 같은 내용(기사 목록 + 프롬프트 전문)을 JSON으로 받는다 — 히스토리
+// 화면이 별도 페이지로 이동하지 않고 그 자리에서 "다시보기"로 보여줄 때 쓴다.
+async function apiPromptData(ids, target) {
+  const params = new URLSearchParams({ ids: ids.join(",") });
+  if (target) params.set("target", target);
+  const res = await fetch(`/api/prompt?${params.toString()}`);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || `프리필 내용 요청 실패 (${res.status})`);
+  }
+  return res.json();
 }
 
 function openHandoff(ids, target) {

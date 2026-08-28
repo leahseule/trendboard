@@ -683,7 +683,13 @@ a.selected-item-row:hover .selected-item-title {
   cursor: pointer;
 }
 
-.method-option-inline:hover { background: var(--surface-hover); }
+.method-option-inline:hover:not(:disabled) { background: var(--surface-hover); }
+
+.method-option-inline:disabled {
+  color: var(--text-muted);
+  opacity: 0.55;
+  cursor: not-allowed;
+}
 
 .prompt-link {
   display: inline-block;
@@ -694,76 +700,33 @@ a.selected-item-row:hover .selected-item-title {
 
 .prompt-link:hover { color: var(--text); }
 
-.trend-intro {
-  font-size: 15.5px;
-  font-weight: 500;
-  line-height: 1.7;
-  color: var(--text);
-  background: var(--surface-hover);
-  border-radius: 8px;
-  padding: 14px 16px;
-  margin: 0 0 18px;
-}
-
-.insight-list {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.insight-card {
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 20px 22px;
-}
-
-.insight-slot {
-  display: inline-block;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--text);
-  background: var(--surface-hover);
-  padding: 4px 10px;
-  border-radius: 6px;
-  margin-bottom: 8px;
-}
-
-.insight-row {
-  margin-top: 16px;
-}
-
-.insight-label {
-  display: block;
+.prompt-preview-label {
   font-size: 11px;
   font-weight: 700;
   color: var(--text-muted);
+  text-transform: uppercase;
   letter-spacing: 0.3px;
-  margin-bottom: 5px;
+  margin: 4px 0 8px;
 }
 
-.insight-row p {
-  margin: 0;
-  font-size: 13.5px;
-  line-height: 1.75;
-}
-
-.insight-row.critical {
-  border-top: 1px dashed var(--border);
-  padding-top: 14px;
-}
-
-.close-btn {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  border: none;
-  background: transparent;
-  font-size: 16px;
-  cursor: pointer;
+.prompt-preview {
+  font-size: 12px;
   color: var(--text-muted);
 }
 
-#trendContent p { line-height: 1.7; font-size: 14px; }
+.prompt-text {
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text);
+  max-height: 480px;
+  overflow-y: auto;
+}
 
 .toast {
   position: fixed;
