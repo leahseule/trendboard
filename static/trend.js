@@ -103,9 +103,11 @@ function renderCurrent(entry) {
 }
 
 function historyItemHtml(entry) {
+  const count = (entry.selectedItems || []).length;
   return `
     <button class="snb-item ${entry.id === activeId ? "active" : ""}" data-id="${entry.id}">
       <span class="snb-item-date">${formatDateTime(entry.createdAt)}</span>
+      <span class="snb-item-count">${count}개 글</span>
     </button>`;
 }
 
