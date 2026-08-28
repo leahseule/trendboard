@@ -200,6 +200,9 @@ async def prompt_page(ids: str, target: str | None = None):
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TrendBoard 분석 요청</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 760px;
          margin: 40px auto; padding: 0 20px 60px; line-height: 1.6; color: #1a1a1a; }}
@@ -212,7 +215,7 @@ async def prompt_page(ids: str, target: str | None = None):
            border-radius: 6px; background: #fff; }}
   pre {{ white-space: pre-wrap; word-break: break-word; background: #f6f6f6; padding: 20px;
         border-radius: 8px; font-size: 0.88rem;
-        font-family: "D2Coding", "Cascadia Mono", "Consolas", "Menlo", "Monaco", "Courier New", monospace; }}
+        font-family: "JetBrains Mono", "Noto Sans KR", "Pretendard", "Consolas", "Menlo", "Monaco", monospace; }}
 </style>
 </head>
 <body>

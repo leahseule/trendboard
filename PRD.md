@@ -209,7 +209,16 @@ arXiv·bioRxiv·MIT Tech Review 등에서 최신 연구/기술 정보를 모아 
     지정 — 프롬프트 원문임을 시각적으로 구분. **바로 다음에 "돋움 말고 코드용 폰트로"
     피드백을 받아** 고딕(UI용 산세리프) 대신 진짜 코딩 폰트 스택
     `"D2Coding", "Cascadia Mono", "Consolas", "Menlo", "Monaco", "Courier New", monospace`로
-    교체(한국어 고정폭 지원이 좋은 D2Coding을 1순위로).
+    교체(한국어 고정폭 지원이 좋은 D2Coding을 1순위로). **다시 피드백: 이름만 지정했지 실제
+    설치된 폰트가 아니라 결국 시스템 기본 굴림으로 보인다는 문제**(D2Coding·Cascadia Mono가
+    로컬에 설치돼 있지 않으면 폴백 체인 끝까지 가서 옛날 느낌의 시스템 고정폭 폰트로
+    떨어짐) — 이번엔 시스템 폰트에 기대지 않고 **Google Fonts 웹폰트로 직접 로드**해서
+    확실히 트렌디하게 렌더링되게 함: `trend.html`과 `/prompt` 페이지(main.py 인라인 HTML)
+    양쪽에 `<link>`로 **JetBrains Mono + Noto Sans KR**을 불러오고,
+    `font-family: "JetBrains Mono", "Noto Sans KR", "Pretendard", "Consolas", "Menlo",
+    "Monaco", monospace`로 지정 — 영문·기호는 JetBrains Mono(요즘 개발자들이 많이 쓰는
+    트렌디한 코딩 폰트), 한글은 Noto Sans KR(굴림 대신 모던한 느낌)이 글자 단위로 자동
+    폴백. 브라우저에서 `document.fonts`로 실제 로드 확인함.
 
 ## 5. 비범위 (MVP 제외)
 - 국가/기업별 기술 수준 실시간 점수화 (기사 속 사무관도 "난도가 너무 높다"고 판단해 보류)
