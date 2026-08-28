@@ -175,17 +175,37 @@ async function onRefresh() {
   showToast("새로고침했어요.");
 }
 
-function updateDateStatus() {
-  const status = $("#dateStatus");
-  const resetBtn = $("#dateResetBtn");
+function shortDate(iso) {
+  const [, m, d] = iso.split("-");
+  return `${Number(m)}/${Number(d)}`;
+}
+
+function updateDateFilterLabel() {
+  const label = $("#dateFilterLabel");
+  const trigger = $("#dateFilterTrigger");
   if (!state.dateRange) {
-    status.textContent = "최근 3일 보는 중";
-    resetBtn.classList.add("hidden");
+    label.textContent = "최근 3일";
+    trigger.classList.remove("active");
     return;
   }
   const { start, end } = state.dateRange;
-  status.textContent = `${start || "처음"} ~ ${end || "지금"} 검색 중`;
-  resetBtn.classList.remove("hidden");
+  label.textContent = `${start ? shortDate(start) : "처음"} ~ ${end ? shortDate(end) : "지금"}`;
+  trigger.classList.add("active");
+}
+
+function openDateFilterPopover() {
+  $("#dateFilter").classList.add("open");
+  $("#dateFilterPopover").classList.remove("hidden");
+}
+
+function closeDateFilterPopover() {
+  $("#dateFilter").classList.remove("open");
+  $("#dateFilterPopover").classList.add("hidden");
+}
+
+function toggleDateFilterPopover() {
+  if ($("#dateFilterPopover").classList.contains("hidden")) openDateFilterPopover();
+  else closeDateFilterPopover();
 }
 
 function todayStr() {
@@ -217,7 +237,8 @@ function onDateSearch() {
   }
 
   state.dateRange = { start, end };
-  updateDateStatus();
+  updateDateFilterLabel();
+  closeDateFilterPopover();
   loadItems(false);
 }
 
@@ -225,7 +246,8 @@ function onDateReset() {
   state.dateRange = null;
   $("#dateFrom").value = "";
   $("#dateTo").value = "";
-  updateDateStatus();
+  updateDateFilterLabel();
+  closeDateFilterPopover();
   loadItems(false);
 }
 
@@ -261,11 +283,21 @@ async function init() {
     if (e.target.id === "methodModalOverlay") closeMethodModal();
   });
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closeMethodModal();
+    if (e.key !== "Escape") return;
+    closeMethodModal();
+    closeDateFilterPopover();
   });
   $("#methodChatGptBtn").addEventListener("click", onMethodChatGpt);
   $("#methodClaudeBtn").addEventListener("click", onMethodClaude);
   $("#methodCopyLinkBtn").addEventListener("click", onHandoffCopy);
+  $("#dateFilterTrigger").addEventListener("click", (e) => {
+    e.stopPropagation();
+    toggleDateFilterPopover();
+  });
+  document.addEventListener("click", (e) => {
+    if (!$("#dateFilter").contains(e.target)) closeDateFilterPopover();
+  });
+  $("#dateFilterPopover").addEventListener("click", (e) => e.stopPropagation());
   $("#dateSearchBtn").addEventListener("click", onDateSearch);
   $("#dateResetBtn").addEventListener("click", onDateReset);
 

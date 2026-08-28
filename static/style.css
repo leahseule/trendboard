@@ -76,45 +76,134 @@ body {
   flex-wrap: wrap;
 }
 
-.date-bar-label {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--text-muted);
+.date-filter {
+  position: relative;
 }
 
-.date-bar input[type="date"] {
+.date-filter-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text);
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.date-filter-trigger:hover { background: var(--surface-hover); }
+
+.date-filter-trigger.active {
+  border-color: var(--select);
+  color: var(--select);
+  background: var(--select-soft);
+}
+
+.date-filter-icon { width: 14px; height: 14px; flex-shrink: 0; }
+
+.date-filter-chevron {
+  width: 9px;
+  height: 9px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+  transition: transform 0.15s;
+}
+
+.date-filter.open .date-filter-chevron { transform: rotate(180deg); }
+
+.date-filter-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 20;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 260px;
+}
+
+.date-filter-popover.hidden { display: none; }
+
+.date-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.date-filter-row input[type="date"] {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
   border-radius: 8px;
-  padding: 6px 10px;
+  padding: 7px 8px;
   font-size: 13px;
   font-family: inherit;
 }
 
-.date-sep { color: var(--text-muted); }
+.date-sep { color: var(--text-muted); font-size: 12px; }
 
-.date-bar button {
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text);
-  padding: 6px 14px;
+.date-filter-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.date-filter-ghost {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  padding: 6px 4px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.date-filter-ghost:hover { color: var(--text); }
+
+.date-filter-apply {
+  border: none;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  padding: 7px 16px;
   border-radius: 8px;
   font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
 }
 
-.date-bar button:hover { background: var(--surface-hover); }
+.date-filter-apply:hover { opacity: 0.9; }
 
-.date-reset {
-  color: var(--text-muted);
+.refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
 }
 
-.date-status {
-  font-size: 12px;
-  color: var(--text-muted);
-  margin-left: auto;
-}
+.refresh-btn:hover { background: var(--surface-hover); }
+
+.refresh-btn svg { width: 13px; height: 13px; }
 
 .tabs {
   display: flex;
