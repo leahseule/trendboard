@@ -50,14 +50,11 @@ function renderCards() {
   }
   container.innerHTML = items.map(cardHtml).join("");
   items.forEach((item) => {
-    const checkbox = $(`#select-${item.id}`);
-    checkbox.addEventListener("change", (e) => onSelect(item.id, e.target.checked));
     const btn = $(`#summarize-${item.id}`);
     if (btn) btn.addEventListener("click", (e) => { e.stopPropagation(); onSummarize(item.id); });
     $(`#card-${item.id}`).addEventListener("click", (e) => {
-      if (e.target.closest(".select-label") || e.target.closest(".summarize-btn") || e.target.closest(".card-title")) return;
-      checkbox.checked = !checkbox.checked;
-      onSelect(item.id, checkbox.checked);
+      if (e.target.closest(".summarize-btn") || e.target.closest(".card-title")) return;
+      onSelect(item.id, !state.selected.has(item.id));
     });
   });
 }
@@ -73,9 +70,6 @@ function cardHtml(item) {
         <span class="badge ${item.source}">${escapeHtml(SOURCE_LABEL[item.source] || item.source)}</span>
         ${used ? '<span class="used-badge" title="이전 트렌드 분석에 포함됨">✓ 분석됨</span>' : ""}
       </div>
-      <label class="select-label">
-        <input type="checkbox" id="select-${item.id}" ${selected ? "checked" : ""}> 트렌드에 포함
-      </label>
     </div>
     <a class="card-title" href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.title)}</a>
     <div class="card-meta">${escapeHtml(item.meta)}</div>
@@ -181,7 +175,7 @@ async function onRefresh() {
   showToast("새로고침했어요.");
 }
 
-// "선택 항목 트렌드 분석" 클릭 → ChatGPT/Claude 중 하나를 고르는 모달을 먼저 띄운다.
+// "선택 항목 인사이트 분석" 클릭 → ChatGPT/Claude 중 하나를 고르는 모달을 먼저 띄운다.
 function openMethodModal() {
   if (state.selected.size < 1) return;
   $("#methodModalCount").textContent = state.selected.size;
