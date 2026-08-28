@@ -24,8 +24,12 @@ function promptPageUrl(ids, target) {
 // target === "claude"일 때만 결과를 아티팩트로 만들어달라는 문구를 덧붙인다 — 아티팩트는
 // Claude 전용 기능이라 ChatGPT엔 의미가 없음.
 function handoffMessage(ids, target) {
-  const artifactNote = target === "claude" ? " 결과는 채팅 답변 대신 마크다운 아티팩트로 만들어서 보여줘." : "";
-  return `아래 링크 페이지에 있는 글들의 원문 링크와 본문 전체를 참고해서, 페이지에 안내된 방식대로 분석해줘.${artifactNote}\n${promptPageUrl(ids, target)}`;
+  // 짧은 메시지 안의 한글은 퍼센트 인코딩되면 글자당 9배 가까이 불어나(UTF-8 3바이트×%XX)
+  // Claude/ChatGPT 쪽 프리필 길이 제한에 걸릴 수 있다(실사용 중 "URL이 너무 길어서
+  // 못 불러온다" 확인됨) — 실제 분석 지시문(아티팩트 요청 포함)은 이미 /prompt 페이지
+  // 안에 다 있으므로, 여기서는 한글을 최소한으로 줄여 링크를 열어보라는 정도만 남긴다.
+  const artifactNote = target === "claude" ? "(아티팩트로)" : "";
+  return `아래 글 분석해줘${artifactNote}:\n${promptPageUrl(ids, target)}`;
 }
 
 // /prompt 페이지와 같은 내용(기사 목록 + 프롬프트 전문)을 JSON으로 받는다 — 히스토리
