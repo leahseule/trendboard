@@ -716,7 +716,7 @@ a.selected-item-row:hover .selected-item-title {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 14px 16px;
-  font-family: "Dotum", "돋움", "DotumChe", "돋움체", "Malgun Gothic", "맑은 고딕", sans-serif;
+  font-family: "D2Coding", "Cascadia Mono", "Consolas", "Menlo", "Monaco", "Courier New", monospace;
   font-size: 12.5px;
   line-height: 1.6;
   color: var(--text);

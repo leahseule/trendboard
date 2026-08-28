@@ -206,7 +206,10 @@ arXiv·bioRxiv·MIT Tech Review 등에서 최신 연구/기술 정보를 모아 
     스타일 추가). 이제 안 쓰는 `.prompt-link` CSS도 정리. 프롬프트 미리보기(`.prompt-text`,
     히스토리·`/prompt` 페이지 둘 다)의 폰트를 본문 UI 폰트(Pretendard 계열)와 다르게
     `"Dotum", "돋움", "DotumChe", "돋움체", "Malgun Gothic", "맑은 고딕", sans-serif`로
-    지정 — 프롬프트 원문임을 시각적으로 구분.
+    지정 — 프롬프트 원문임을 시각적으로 구분. **바로 다음에 "돋움 말고 코드용 폰트로"
+    피드백을 받아** 고딕(UI용 산세리프) 대신 진짜 코딩 폰트 스택
+    `"D2Coding", "Cascadia Mono", "Consolas", "Menlo", "Monaco", "Courier New", monospace`로
+    교체(한국어 고정폭 지원이 좋은 D2Coding을 1순위로).
 
 ## 5. 비범위 (MVP 제외)
 - 국가/기업별 기술 수준 실시간 점수화 (기사 속 사무관도 "난도가 너무 높다"고 판단해 보류)
