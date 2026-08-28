@@ -184,34 +184,114 @@ body {
   font-size: 13px;
 }
 
-.handoff-group {
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
   display: flex;
   align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 20px;
+}
+
+.modal-overlay.hidden { display: none; }
+
+.modal {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  background: var(--surface);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 28px 24px 22px;
+}
+
+.modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+}
+
+.modal-close:hover { color: var(--text); }
+
+.modal-title {
+  margin: 0 0 4px;
+  font-size: 17px;
+}
+
+.modal-sub {
+  margin: 0 0 18px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.method-options {
+  display: flex;
+  flex-direction: column;
   gap: 8px;
 }
 
-.handoff-label {
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-.handoff-btn {
+.method-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  width: 100%;
+  text-align: left;
   border: 1px solid var(--border);
   background: var(--surface);
-  color: var(--text);
-  padding: 7px 14px;
-  border-radius: 8px;
-  font-size: 13px;
+  border-radius: 10px;
+  padding: 12px 14px;
   cursor: pointer;
+  font: inherit;
+  color: inherit;
+  transition: border-color 0.15s, background 0.15s;
 }
 
-.handoff-btn:hover:not(:disabled) { background: var(--surface-hover); }
+.method-option:hover:not(:disabled) {
+  border-color: var(--select);
+  background: var(--select-soft);
+}
 
-.handoff-btn:disabled {
-  color: var(--text-muted);
+.method-option:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
+
+.method-name {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.method-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.method-copy-link {
+  display: block;
+  width: 100%;
+  margin-top: 14px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 4px;
+  text-align: center;
+}
+
+.method-copy-link:hover { color: var(--text); }
 
 #trendBtn {
   display: inline-flex;

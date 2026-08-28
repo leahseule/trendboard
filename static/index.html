@@ -38,12 +38,6 @@
 </header>
 
 <div class="trendbar" id="trendbar">
-  <div class="handoff-group">
-    <span class="handoff-label">API 비용 없이 직접 물어보기</span>
-    <button id="handoffChatGptBtn" class="handoff-btn" disabled>ChatGPT로</button>
-    <button id="handoffClaudeBtn" class="handoff-btn" disabled>Claude로</button>
-    <button id="handoffCopyBtn" class="handoff-btn" disabled title="링크가 안 열리면 이걸로 복사해서 붙여넣어주세요">프롬프트 복사</button>
-  </div>
   <button id="trendBtn" disabled>
     <span id="trendCount" class="cart-count hidden">0</span>
     선택 항목 트렌드 분석
@@ -51,6 +45,29 @@
 </div>
 
 <main id="cards" class="cards"></main>
+
+<div class="modal-overlay hidden" id="methodModalOverlay">
+  <div class="modal">
+    <button class="modal-close" id="methodModalClose" aria-label="닫기">×</button>
+    <h2 class="modal-title">어떤 방식으로 분석할까요?</h2>
+    <p class="modal-sub"><span id="methodModalCount">0</span>개 글을 분석합니다.</p>
+    <div class="method-options">
+      <button class="method-option" id="methodTrendboardBtn">
+        <span class="method-name">TrendBoard</span>
+        <span class="method-desc">이 앱이 OpenAI API로 바로 분석해요. 비용이 발생하고, 결과가 히스토리에 저장돼요.</span>
+      </button>
+      <button class="method-option" id="methodChatGptBtn">
+        <span class="method-name">ChatGPT로</span>
+        <span class="method-desc">내 ChatGPT 계정에서 무료로 분석해요. 결과는 ChatGPT에서만 확인하고, 이 앱에는 저장되지 않아요.</span>
+      </button>
+      <button class="method-option" id="methodClaudeBtn">
+        <span class="method-name">Claude로</span>
+        <span class="method-desc">내 Claude 계정에서 무료로 분석해요. 결과는 Claude에서만 확인하고, 이 앱에는 저장되지 않아요.</span>
+      </button>
+    </div>
+    <button class="method-copy-link" id="methodCopyLinkBtn">링크가 안 열리면 여기를 눌러 프롬프트 복사</button>
+  </div>
+</div>
 
 <div id="toast" class="toast hidden"></div>
 

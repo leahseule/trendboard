@@ -112,9 +112,6 @@ function updateTrendbar() {
   countEl.textContent = n;
   countEl.classList.toggle("hidden", n === 0);
   $("#trendBtn").disabled = n < 1;
-  $("#handoffChatGptBtn").disabled = n < 1;
-  $("#handoffClaudeBtn").disabled = n < 1;
-  $("#handoffCopyBtn").disabled = n < 1;
 }
 
 // API를 쓰지 않고, 같은 분석 요청을 사용자 본인의 ChatGPT/Claude 계정으로 넘긴다
@@ -235,19 +232,42 @@ function onDateReset() {
   loadItems(false);
 }
 
-async function onTrendClick() {
-  const btn = $("#trendBtn");
+// "선택 항목 트렌드 분석" 클릭 → 바로 API를 부르지 않고, 3가지 분석 방식(TrendBoard 자체 API /
+// ChatGPT / Claude) 중 하나를 고르는 모달을 먼저 띄운다.
+function openMethodModal() {
+  if (state.selected.size < 1) return;
+  $("#methodModalCount").textContent = state.selected.size;
+  $("#methodModalOverlay").classList.remove("hidden");
+}
+
+function closeMethodModal() {
+  $("#methodModalOverlay").classList.add("hidden");
+}
+
+async function onMethodTrendboard() {
+  const btn = $("#methodTrendboardBtn");
+  const original = btn.innerHTML;
   btn.disabled = true;
-  btn.innerHTML = `<span class="spinner"></span>분석 중...`;
+  btn.innerHTML = `<span class="method-name"><span class="spinner"></span>분석 중...</span>`;
   const ids = [...state.selected];
   try {
     const entry = await apiTrend(ids);
     window.location.href = `trend.html?id=${entry.id}`;
   } catch (e) {
     showToast(e.message);
-    btn.innerHTML = `<span id="trendCount" class="cart-count hidden">0</span>선택 항목 트렌드 분석`;
-    updateTrendbar();
+    btn.disabled = false;
+    btn.innerHTML = original;
   }
+}
+
+function onMethodChatGpt() {
+  closeMethodModal();
+  onHandoffOpen("chatgpt");
+}
+
+function onMethodClaude() {
+  closeMethodModal();
+  onHandoffOpen("claude");
 }
 
 async function init() {
@@ -255,10 +275,18 @@ async function init() {
   loadItems();
   $("#sourceTabs").addEventListener("click", onTabClick);
   $("#refreshBtn").addEventListener("click", onRefresh);
-  $("#trendBtn").addEventListener("click", onTrendClick);
-  $("#handoffChatGptBtn").addEventListener("click", () => onHandoffOpen("chatgpt"));
-  $("#handoffClaudeBtn").addEventListener("click", () => onHandoffOpen("claude"));
-  $("#handoffCopyBtn").addEventListener("click", onHandoffCopy);
+  $("#trendBtn").addEventListener("click", openMethodModal);
+  $("#methodModalClose").addEventListener("click", closeMethodModal);
+  $("#methodModalOverlay").addEventListener("click", (e) => {
+    if (e.target.id === "methodModalOverlay") closeMethodModal();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeMethodModal();
+  });
+  $("#methodTrendboardBtn").addEventListener("click", onMethodTrendboard);
+  $("#methodChatGptBtn").addEventListener("click", onMethodChatGpt);
+  $("#methodClaudeBtn").addEventListener("click", onMethodClaude);
+  $("#methodCopyLinkBtn").addEventListener("click", onHandoffCopy);
   $("#dateSearchBtn").addEventListener("click", onDateSearch);
   $("#dateResetBtn").addEventListener("click", onDateReset);
 

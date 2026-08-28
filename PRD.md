@@ -124,6 +124,14 @@ arXiv·bioRxiv·MIT Tech Review 등에서 최신 연구/기술 정보를 모아 
       실시간으로 원문 페이지를 추가로 fetch하므로 지연시간이 늘어남, (3) 네이버 ToS 관련
       기존 불확실성(9번 항목 참고)이 목록 페이지뿐 아니라 개별 기사 페이지 스크레이핑에도
       그대로 적용됨.
+11. **분석 방식 선택 흐름 재구성(2026-08-28)**: 기존엔 트렌드바에 "선택 항목 트렌드
+    분석"(TrendBoard 자체 API)과 "ChatGPT로"·"Claude로"·"프롬프트 복사"(핸드오프)가 항상
+    나란히 노출돼 헷갈린다는 지적으로, **"선택 항목 트렌드 분석" 버튼 하나만 남기고, 클릭하면
+    TrendBoard/ChatGPT로/Claude로 3가지 옵션을 고르는 모달**이 뜨는 구조로 바꿈. "프롬프트
+    복사"는 모달 하단에 작은 보조 링크로 남김(ChatGPT/Claude 링크가 안 열릴 때의 안전망,
+    8번 항목 참고). `app.js`: `openMethodModal`/`closeMethodModal` 추가, 기존
+    `onTrendClick`의 API 호출 로직은 `onMethodTrendboard`로 이동. 모달은 배경 클릭·Escape·
+    닫기 버튼으로 닫힘.
 
 ## 5. 비범위 (MVP 제외)
 - 국가/기업별 기술 수준 실시간 점수화 (기사 속 사무관도 "난도가 너무 높다"고 판단해 보류)
@@ -167,16 +175,21 @@ arXiv·bioRxiv·MIT Tech Review 등에서 최신 연구/기술 정보를 모아 
   통해 파일로 영속화되므로 재시작해도 안 날아감
 
 ## 7. 배포
-- [[project-xlmeta]]와 같은 패턴: 기존 Weave EC2 인스턴스 + Caddy 리버스 프록시에 붙여
-  서브도메인 발급 (예: `trend.weaveapp.duckdns.org`), docker-compose로 `weave_default`
-  네트워크 참여, 호스트 포트 노출 안 함.
+- **라이브 배포 완료(2026-08-28)**: **https://trendboard.weaveapp.duckdns.org** (자동 HTTPS,
+  `/api/health` 200 확인함). [[project-xlmeta]]와 같은 EC2(Ubuntu, Elastic IP
+  `3.132.211.139`)에서, Weave의 기존 Caddy(`weave-caddy-1`, 네트워크 `weave_default`,
+  Caddyfile `/home/ubuntu/weave/Caddyfile`) 뒤에 붙임. `trendboard`는 호스트 포트 노출 안
+  하고 `docker-compose.caddy.yml`로 `weave_default`에만 참여(컨테이너명 `trendboard`),
+  Caddyfile에 `trendboard.weaveapp.duckdns.org { reverse_proxy trendboard:8000 }` 블록
+  추가 후 `docker exec weave-caddy-1 caddy reload`로 무중단 반영.
+  GitHub: **https://github.com/leahseule/trendboard** (public, 2026-08-28 최초 push).
+  EC2 SSH·Caddyfile 수정·컨테이너 기동은 공유 인프라라 사용자가 직접 진행함(로컬 네트워크에서
+  22번 포트가 막혀 있어 이 세션에서는 SSH 직접 접속이 안 됨 — weave 배포 때와 같은 제약,
+  당시엔 EC2 Instance Connect로 우회했었음).
+- 업데이트: `cd ~/trendboard && git pull && docker compose -f docker-compose.caddy.yml up -d --build`
 - **로컬 검증(2026-08-27) 완료**: `Dockerfile`(python:3.12-slim, uvicorn)·
   `docker-compose.yml`(로컬 테스트용, 8000 포트 노출)·`docker-compose.caddy.yml`(운영용,
-  `weave_default` 네트워크만 참여, 포트 미노출) 작성. 실제 실행은 이 세션에서 Docker Desktop이
-  꺼져 있어 `.venv` 로컬 uvicorn으로 대신 검증(문법은 `docker compose config`로 확인) —
-  **Docker Desktop 켠 뒤 `docker compose build && docker compose up`으로 한 번 더 확인 필요**
-- EC2에 실제로 SSH로 들어가 배포하는 것(Caddyfile에 서브도메인 블록 추가 등)은 공유 인프라라
-  사용자 확인 후 진행 예정 — 아직 안 함
+  `weave_default` 네트워크만 참여, 포트 미노출) 작성.
 
 ## 8. 성공 기준
 - 하루 1회 이상 실제로 열어서 "오늘 뭐가 화두인지" 확인하는 용도로 쓰게 됨
