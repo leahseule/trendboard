@@ -201,6 +201,14 @@ async function onRefresh() {
   showToast("새로고침했어요.");
 }
 
+function onScrollToggleBackToTop() {
+  $("#backToTopBtn").classList.toggle("hidden", window.scrollY < 400);
+}
+
+function onBackToTop() {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
 // "선택 항목 인사이트 분석" 클릭 → ChatGPT/Claude 중 하나를 고르는 모달을 먼저 띄운다.
 function openMethodModal() {
   if (state.selected.size < 1) return;
@@ -228,6 +236,8 @@ async function init() {
   $("#sourceTabs").addEventListener("click", onTabClick);
   $("#daysFilter").addEventListener("click", onDaysClick);
   $("#refreshBtn").addEventListener("click", onRefresh);
+  $("#backToTopBtn").addEventListener("click", onBackToTop);
+  window.addEventListener("scroll", onScrollToggleBackToTop, { passive: true });
   $("#trendBtn").addEventListener("click", openMethodModal);
   $("#methodModalClose").addEventListener("click", closeMethodModal);
   $("#methodModalOverlay").addEventListener("click", (e) => {

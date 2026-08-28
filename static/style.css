@@ -818,3 +818,33 @@ a.selected-item-row:hover .selected-item-title {
 }
 
 .logout-link:hover { color: var(--text); }
+
+.back-to-top {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 30;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 50%;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 1;
+  transition: opacity 0.15s, transform 0.15s, background 0.15s;
+}
+
+.back-to-top svg { width: 16px; height: 16px; }
+
+.back-to-top:hover { background: var(--surface-hover); }
+
+.back-to-top.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(6px);
+}
