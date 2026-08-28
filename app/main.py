@@ -1,21 +1,89 @@
 import asyncio
 import html as html_lib
+import os
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from dotenv import load_dotenv
 load_dotenv()
 
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+from starlette.middleware.sessions import SessionMiddleware
 
-from app import history_store, sources, summarize
+from app import auth, history_store, sources, summarize, user_store
 
 app = FastAPI(title="TrendBoard")
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
+
+# 로그인 없이 접근 가능한 경로. /prompt·/api/prompt는 ChatGPT/Claude가 외부에서 직접
+# 열어야 하는 핸드오프용이라 반드시 공개로 둬야 함(로그인 게이트를 걸면 그 핸드오프가
+# 통째로 깨짐). login.html/register.html이 필요로 하는 최소한의 정적 자산(style.css)도 포함.
+PUBLIC_PATHS = {
+    "/login.html", "/register.html", "/api/login", "/api/register", "/logout",
+    "/prompt", "/api/prompt", "/api/health", "/style.css",
+}
+
+
+@app.middleware("http")
+async def require_login(request: Request, call_next):
+    path = request.url.path
+    if path in PUBLIC_PATHS:
+        return await call_next(request)
+    if not request.session.get("user_id"):
+        if path.startswith("/api/"):
+            return JSONResponse({"detail": "로그인이 필요합니다."}, status_code=401)
+        return RedirectResponse("/login.html")
+    return await call_next(request)
+
+
+# require_login보다 나중에 등록해야 SessionMiddleware가 바깥쪽(요청 시 먼저 실행)에
+# 온다 — 순서가 반대면 require_login이 request.session에 접근할 때 "SessionMiddleware
+# must be installed" AssertionError가 남(실제로 겪음, 2026-08-28).
+app.add_middleware(SessionMiddleware, secret_key=os.environ["SESSION_SECRET"])
+
+
+@app.post("/api/login")
+async def api_login(request: Request):
+    form = await request.form()
+    username = (form.get("username") or "").strip()
+    password = form.get("password") or ""
+    user = user_store.find_by_username(username)
+    if not user or not auth.verify_password(password, user["password_hash"]):
+        return RedirectResponse("/login.html?error=invalid", status_code=303)
+    request.session["user_id"] = user["id"]
+    request.session["username"] = user["username"]
+    return RedirectResponse("/", status_code=303)
+
+
+@app.post("/api/register")
+async def api_register(request: Request):
+    form = await request.form()
+    username = (form.get("username") or "").strip()
+    password = form.get("password") or ""
+    confirm = form.get("confirm") or ""
+    if not username or not password:
+        return RedirectResponse("/register.html?error=missing", status_code=303)
+    if password != confirm:
+        return RedirectResponse("/register.html?error=mismatch", status_code=303)
+    if len(password) < 8:
+        return RedirectResponse("/register.html?error=short", status_code=303)
+    if user_store.find_by_username(username):
+        return RedirectResponse("/register.html?error=taken", status_code=303)
+    user = user_store.create_user(username, auth.hash_password(password))
+    request.session["user_id"] = user["id"]
+    request.session["username"] = user["username"]
+    return RedirectResponse("/", status_code=303)
+
+
+@app.api_route("/logout", methods=["GET", "POST"])
+async def logout(request: Request):
+    request.session.clear()
+    return RedirectResponse("/login.html", status_code=303)
+
 
 SOURCE_LABEL = {"geeknews": "GeekNews", "aitimes": "AI타임스", "naver_it": "네이버 IT"}
 

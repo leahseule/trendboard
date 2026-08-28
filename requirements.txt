@@ -5,3 +5,6 @@ feedparser
 beautifulsoup4
 openai
 python-dotenv
+itsdangerous
+python-multipart
+bcrypt

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>로그인 — TrendBoard</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="auth-shell">
+  <form class="auth-card" method="post" action="/api/login">
+    <h1 class="auth-title">TrendBoard</h1>
+    <p class="auth-error hidden" id="authError"></p>
+    <label class="auth-label">아이디
+      <input class="auth-input" type="text" name="username" autocomplete="username" required autofocus>
+    </label>
+    <label class="auth-label">비밀번호
+      <input class="auth-input" type="password" name="password" autocomplete="current-password" required>
+    </label>
+    <button class="auth-submit" type="submit">로그인</button>
+    <a class="auth-switch" href="register.html">계정이 없으신가요? 회원가입</a>
+  </form>
+</div>
+<script>
+  const err = new URLSearchParams(location.search).get("error");
+  if (err) {
+    const el = document.getElementById("authError");
+    el.textContent = err === "invalid" ? "아이디 또는 비밀번호가 올바르지 않습니다." : "로그인에 실패했습니다.";
+    el.classList.remove("hidden");
+  }
+</script>
+</body>
+</html>

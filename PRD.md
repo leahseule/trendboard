@@ -252,6 +252,31 @@ arXiv·bioRxiv·MIT Tech Review 등에서 최신 연구/기술 정보를 모아 
     `curl -I`로 전부 200 확인함. **핸드오프는 클립보드 복사 방식으로 바꾸지 않고 링크
     방식을 유지**하기로 함(사용자 의사 확인) — 이 수정으로 링크 방식이 실제로 안정적으로
     동작하는지는 다음 실사용에서 재확인 필요.
+23. **회원가입 기반 로그인 추가(2026-08-28)**: 사이트가 공개 URL로 배포돼 있어 아무나
+    접근 가능했음 — 아이디/비밀번호 회원가입 방식으로 전체 사이트를 잠금(단일 비밀번호
+    공유 방식은 검토했다가 "회원가입 가능하게" 요청받아 폐기).
+    - `app/user_store.py`(신규): `data/users.json`에 사용자 저장 — 기존 `history_store.py`/
+      `items_store.py`와 같은 파일 기반 패턴(DB 없음). `app/auth.py`(신규): `bcrypt`로
+      비밀번호 해시.
+    - `SessionMiddleware`(Starlette, `itsdangerous` 필요)로 서명된 세션 쿠키 사용.
+      `@app.middleware("http")`의 `require_login`이 `PUBLIC_PATHS`에 없는 모든 요청에
+      로그인을 요구 — 페이지 요청은 `/login.html`로 리다이렉트, `/api/*` 요청은 401 JSON.
+      **`PUBLIC_PATHS`는 반드시 `/prompt`·`/api/prompt`를 포함해야 함** — ChatGPT/Claude가
+      외부에서 직접 열어야 하는 핸드오프 경로라 로그인 게이트를 걸면 그 기능 전체가 깨짐.
+      `/api/health`·`/style.css`·`/login.html`·`/register.html`·`/api/login`·
+      `/api/register`·`/logout`도 공개.
+    - `static/login.html`/`static/register.html`(신규): 순수 HTML `<form>`(JS로 fetch
+      안 함) → `POST /api/login`·`/api/register`. 실패 시 `?error=코드`로 리다이렉트하고
+      페이지의 짧은 인라인 스크립트가 쿼리스트링을 읽어 에러 메시지 표시(정적 페이지를
+      유지하면서도 에러 표시 가능하게 하는 패턴).
+    - **미들웨어 등록 순서 버그(실제로 겪음)**: `app.add_middleware(SessionMiddleware)`를
+      `require_login` 정의 *이전에* 호출했더니 `require_login`이 `request.session`에
+      접근할 때 "SessionMiddleware must be installed" `AssertionError`로 500 남 — Starlette
+      미들웨어 스택은 **나중에 `add_middleware`한 것이 바깥쪽(요청 시 먼저 실행)** 이라
+      `require_login` 정의 *다음에* `SessionMiddleware`를 등록해야 순서가 맞음(직관과
+      반대라 실수하기 쉬움, 주석으로 남겨둠).
+    - 회원가입·로그인·로그아웃·중복 아이디·오답 비밀번호 전부 curl + 실제 브라우저
+      폼 제출(`requestSubmit()`)로 확인함.
 
 ## 5. 비범위 (MVP 제외)
 - 국가/기업별 기술 수준 실시간 점수화 (기사 속 사무관도 "난도가 너무 높다"고 판단해 보류)
