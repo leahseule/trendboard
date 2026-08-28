@@ -59,8 +59,8 @@ function formatDateTime(ts) {
 
 // --- 백엔드 API 래퍼 ---
 
-async function apiGetItems(source = "all", refresh = false) {
-  const params = new URLSearchParams({ source, refresh: String(refresh) });
+async function apiGetItems(source = "all", refresh = false, days = 3) {
+  const params = new URLSearchParams({ source, refresh: String(refresh), days: String(days) });
   const res = await fetch(`/api/items?${params.toString()}`);
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));

@@ -3,6 +3,7 @@
 const state = {
   items: [],
   activeSource: "all",
+  days: 3, // 며칠치를 볼지 — 이미 수집해둔 최근 범위 안에서만 고르므로 아카이브 한계와 무관
   selected: new Set(),
   usedIds: new Set(), // 예전 트렌드 분석에 한 번이라도 포함됐던 글의 id
 };
@@ -32,7 +33,7 @@ async function loadItems(refresh = false) {
   const container = $("#cards");
   container.innerHTML = `<div class="empty-state"><span class="spinner"></span>불러오는 중...</div>`;
   try {
-    state.items = await apiGetItems("all", refresh);
+    state.items = await apiGetItems("all", refresh, state.days);
   } catch (e) {
     container.innerHTML = `<div class="empty-state">글을 불러오지 못했습니다. 백엔드가 켜져 있는지 확인해주세요.<br>${escapeHtml(e.message)}</div>`;
     return;
@@ -159,10 +160,19 @@ async function onSummarize(id) {
 function onTabClick(e) {
   const btn = e.target.closest(".tab");
   if (!btn) return;
-  document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+  $("#sourceTabs").querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
   btn.classList.add("active");
   state.activeSource = btn.dataset.source;
   renderCards();
+}
+
+function onDaysClick(e) {
+  const btn = e.target.closest(".tab");
+  if (!btn) return;
+  $("#daysFilter").querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+  btn.classList.add("active");
+  state.days = Number(btn.dataset.days);
+  loadItems(false);
 }
 
 async function onRefresh() {
@@ -196,6 +206,7 @@ async function init() {
   await loadUsedIds();
   loadItems();
   $("#sourceTabs").addEventListener("click", onTabClick);
+  $("#daysFilter").addEventListener("click", onDaysClick);
   $("#refreshBtn").addEventListener("click", onRefresh);
   $("#trendBtn").addEventListener("click", openMethodModal);
   $("#methodModalClose").addEventListener("click", closeMethodModal);

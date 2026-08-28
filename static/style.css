@@ -76,13 +76,6 @@ body {
   flex-wrap: wrap;
 }
 
-.recency-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-muted);
-  padding: 7px 2px;
-}
-
 .refresh-btn {
   display: inline-flex;
   align-items: center;
