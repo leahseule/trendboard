@@ -119,17 +119,23 @@ function updateTrendbar() {
 // 한글 프롬프트 전체를 URL에 실으면 퍼센트 인코딩 때문에 글자당 9배로 불어나 링크가 안 열릴
 // 수 있어서, ChatGPT/Claude에는 우리가 호스팅하는 /prompt 페이지로 가는 "짧은 링크"만 준다.
 // 실제 원문 링크·전체 본문은 그 페이지 안에 있다 — 항상 링크만 전달하는 방식으로 확정.
-function promptPageUrl() {
+function promptPageUrl(target) {
   const ids = [...state.selected].join(",");
-  return `${window.location.origin}/prompt?ids=${encodeURIComponent(ids)}`;
+  const params = new URLSearchParams({ ids });
+  if (target) params.set("target", target);
+  return `${window.location.origin}/prompt?${params.toString()}`;
 }
 
-function handoffMessage() {
-  return `아래 링크 페이지에 있는 글들의 원문 링크와 본문 전체를 참고해서, 페이지에 안내된 방식대로 분석해줘.\n${promptPageUrl()}`;
+// target === "claude"일 때만 결과를 아티팩트로 만들어달라는 문구를 덧붙인다 — 아티팩트는
+// Claude 전용 기능이라 ChatGPT엔 의미가 없음. 복사 버튼(target 없음)은 어느 쪽에 붙여넣을지
+// 몰라서 중립 메시지를 그대로 씀.
+function handoffMessage(target) {
+  const artifactNote = target === "claude" ? " 결과는 채팅 답변 대신 마크다운 아티팩트로 만들어서 보여줘." : "";
+  return `아래 링크 페이지에 있는 글들의 원문 링크와 본문 전체를 참고해서, 페이지에 안내된 방식대로 분석해줘.${artifactNote}\n${promptPageUrl(target)}`;
 }
 
 function onHandoffOpen(target) {
-  const q = encodeURIComponent(handoffMessage());
+  const q = encodeURIComponent(handoffMessage(target));
   const url = target === "claude" ? `https://claude.ai/new?q=${q}` : `https://chatgpt.com/?q=${q}`;
   window.open(url, "_blank", "noopener");
 }

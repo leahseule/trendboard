@@ -132,6 +132,13 @@ arXiv·bioRxiv·MIT Tech Review 등에서 최신 연구/기술 정보를 모아 
     8번 항목 참고). `app.js`: `openMethodModal`/`closeMethodModal` 추가, 기존
     `onTrendClick`의 API 호출 로직은 `onMethodTrendboard`로 이동. 모달은 배경 클릭·Escape·
     닫기 버튼으로 닫힘.
+12. **Claude 핸드오프는 결과를 마크다운 아티팩트로(2026-08-28)**: "Claude로" 넘길 때만
+    `/prompt?ids=...&target=claude`처럼 `target=claude`를 붙이고,
+    `summarize.build_trend_prompt_for_chat(items, want_artifact=True)`가 "채팅 답변 대신
+    마크다운 아티팩트로 만들어서 보여줘" 지시문을 덧붙임 — 아티팩트는 Claude 전용 기능이라
+    ChatGPT 경로(`target` 없음/`chatgpt`)엔 안 붙임. 짧은 핸드오프 메시지 자체에도 같은
+    지시문을 넣어 이중으로 전달(링크를 안 열고 메시지만 봐도 의도가 전해지게). "프롬프트
+    복사" 버튼은 어느 쪽에 붙여넣을지 알 수 없어 중립 메시지 그대로 둠.
 
 ## 5. 비범위 (MVP 제외)
 - 국가/기업별 기술 수준 실시간 점수화 (기사 속 사무관도 "난도가 너무 높다"고 판단해 보류)

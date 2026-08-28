@@ -102,14 +102,20 @@ def build_trend_prompt(items: list) -> str:
     return SLOT_FRAME + _items_block(items)
 
 
-def build_trend_prompt_for_chat(items: list) -> str:
+def build_trend_prompt_for_chat(items: list, want_artifact: bool = False) -> str:
     """ChatGPT/Claude 프리필 링크용 — JSON 대신 사람이 읽기 좋은 마크다운으로 요청.
-    API 비용 없이 사용자 본인 계정으로 같은 분석을 받아보고 싶을 때 씀."""
+    API 비용 없이 사용자 본인 계정으로 같은 분석을 받아보고 싶을 때 씀.
+    want_artifact=True면(Claude로 보낼 때만) 채팅 답변 대신 마크다운 아티팩트로
+    만들어달라는 지시를 덧붙인다 — Claude만 아티팩트 기능이 있어서 ChatGPT엔 안 씀."""
     suffix = (
         "\n\n마크다운으로 보기 좋게 정리해서 답해줘. 슬롯 이름은 소제목(###)으로, "
         '"무엇이 보이는가"·"왜 이게 중요한가"·"어디로 이어지는가"·"비판적으로 볼 지점"은 '
         "각각 굵게 표시한 뒤 문단으로 풀어써줘."
     )
+    if want_artifact:
+        suffix += (
+            "\n\n이 분석 결과 전체를 채팅 답변이 아니라 마크다운 아티팩트로 만들어서 보여줘."
+        )
     return SLOT_FRAME_BODY + suffix + _items_block(items)
 
 
