@@ -23,21 +23,17 @@
     <button id="dateSearchBtn">검색</button>
     <button id="dateResetBtn" class="date-reset hidden">최근 3일로</button>
     <span id="dateStatus" class="date-status">최근 3일 보는 중</span>
-  </div>
-  <div class="topbar-controls">
-    <div class="tabs" id="sourceTabs">
-      <button class="tab active" data-source="all">전체</button>
-      <button class="tab" data-source="aitimes">AI타임스</button>
-      <button class="tab" data-source="naver_it">네이버 IT</button>
-      <button class="tab" data-source="geeknews">GeekNews</button>
-    </div>
-    <div class="actions">
-      <button id="refreshBtn" title="새로고침">새로고침</button>
-    </div>
+    <button id="refreshBtn" title="새로고침">새로고침</button>
   </div>
 </header>
 
 <div class="trendbar" id="trendbar">
+  <div class="tabs" id="sourceTabs">
+    <button class="tab active" data-source="all">전체</button>
+    <button class="tab" data-source="aitimes">AI타임스</button>
+    <button class="tab" data-source="naver_it">네이버 IT</button>
+    <button class="tab" data-source="geeknews">GeekNews</button>
+  </div>
   <button id="trendBtn" disabled>
     <span id="trendCount" class="cart-count hidden">0</span>
     선택 항목 트렌드 분석

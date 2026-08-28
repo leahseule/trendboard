@@ -146,6 +146,14 @@ arXiv·bioRxiv·MIT Tech Review 등에서 최신 연구/기술 정보를 모아 
     실제 콘텐츠 높이를 못 따라가 전혀 안 붙는 상태였음. `height: 100%` → `min-height: 100%`로
     바꿔 해결(트렌드 히스토리 페이지의 `height: 100vh` 전체높이 레이아웃엔 영향 없음 —
     뷰포트 기준 절대값이라 무관).
+14. **상단 컨트롤 라인 재배치(2026-08-28)**: 소스 탭(전체/AI타임스/네이버 IT/GeekNews)을
+    "선택 항목 트렌드 분석" 버튼과 같은 줄(sticky `.trendbar`)로 옮기고, 새로고침 버튼은
+    기간 검색(`.date-bar`)과 같은 줄로 옮김. 예전엔 `.topbar-controls`(탭+새로고침)와
+    `.trendbar`(트렌드 버튼)가 따로 놀아서 탭 선택이 트렌드 분석과 한눈에 안 이어져 보였음.
+    `.topbar-controls`/`.actions` CSS는 더 안 쓰여서 삭제. `.trendbar`는
+    `justify-content: flex-end` → `space-between`로 바꿔 탭 왼쪽·버튼 오른쪽 배치, 탭
+    배경이 트렌드바 배경(`--accent-soft`)과 같은 회색이라 안 보이던 문제는
+    `.trendbar .tabs { background: var(--surface) }`로 흰색 대비를 줘서 해결.
 
 ## 5. 비범위 (MVP 제외)
 - 국가/기업별 기술 수준 실시간 점수화 (기사 속 사무관도 "난도가 너무 높다"고 판단해 보류)
