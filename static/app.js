@@ -116,33 +116,24 @@ function updateTrendbar() {
 
 // API를 쓰지 않고, 같은 분석 요청을 사용자 본인의 ChatGPT/Claude 계정으로 넘긴다
 // (xlmeta의 프리필 링크 패턴과 동일). 결과는 외부 챗에서만 확인 — 우리 앱으로 회수하지 않는다.
-// 한글 프롬프트 전체를 URL에 실으면 퍼센트 인코딩 때문에 글자당 9배로 불어나 링크가 안 열릴
-// 수 있어서, ChatGPT/Claude에는 우리가 호스팅하는 /prompt 페이지로 가는 "짧은 링크"만 준다.
-// 실제 원문 링크·전체 본문은 그 페이지 안에 있다 — 항상 링크만 전달하는 방식으로 확정.
-function promptPageUrl(target) {
-  const ids = [...state.selected].join(",");
-  const params = new URLSearchParams({ ids });
-  if (target) params.set("target", target);
-  return `${window.location.origin}/prompt?${params.toString()}`;
-}
-
-// target === "claude"일 때만 결과를 아티팩트로 만들어달라는 문구를 덧붙인다 — 아티팩트는
-// Claude 전용 기능이라 ChatGPT엔 의미가 없음. 복사 버튼(target 없음)은 어느 쪽에 붙여넣을지
-// 몰라서 중립 메시지를 그대로 씀.
-function handoffMessage(target) {
-  const artifactNote = target === "claude" ? " 결과는 채팅 답변 대신 마크다운 아티팩트로 만들어서 보여줘." : "";
-  return `아래 링크 페이지에 있는 글들의 원문 링크와 본문 전체를 참고해서, 페이지에 안내된 방식대로 분석해줘.${artifactNote}\n${promptPageUrl(target)}`;
-}
-
+// promptPageUrl/handoffMessage/openHandoff는 common.js 공유(장바구니 히스토리에서 "다시
+// 열기"할 때도 같은 함수를 씀).
+//
+// window.open은 반드시 클릭 이벤트 안에서 동기적으로 먼저 불러야 한다 — apiCart 호출을
+// await한 뒤에 열면 팝업 차단에 걸릴 수 있어서, 창은 즉시 열고 장바구니 기록은 그 뒤에
+// 백그라운드로 보낸다(실패해도 핸드오프 자체엔 영향 없음, 조용히 무시).
 function onHandoffOpen(target) {
-  const q = encodeURIComponent(handoffMessage(target));
-  const url = target === "claude" ? `https://claude.ai/new?q=${q}` : `https://chatgpt.com/?q=${q}`;
-  window.open(url, "_blank", "noopener");
+  const ids = [...state.selected];
+  openHandoff(ids, target);
+  apiCart(ids, target)
+    .then(() => loadUsedIds())
+    .then(() => renderCards())
+    .catch(() => {});
 }
 
 async function onHandoffCopy() {
   try {
-    await navigator.clipboard.writeText(handoffMessage());
+    await navigator.clipboard.writeText(handoffMessage([...state.selected]));
     showToast("메시지를 복사했어요. ChatGPT나 Claude에 붙여넣어주세요.");
   } catch (e) {
     showToast(e.message);
@@ -238,8 +229,7 @@ function onDateReset() {
   loadItems(false);
 }
 
-// "선택 항목 트렌드 분석" 클릭 → 바로 API를 부르지 않고, 3가지 분석 방식(TrendBoard 자체 API /
-// ChatGPT / Claude) 중 하나를 고르는 모달을 먼저 띄운다.
+// "선택 항목 트렌드 분석" 클릭 → ChatGPT/Claude 중 하나를 고르는 모달을 먼저 띄운다.
 function openMethodModal() {
   if (state.selected.size < 1) return;
   $("#methodModalCount").textContent = state.selected.size;
@@ -248,22 +238,6 @@ function openMethodModal() {
 
 function closeMethodModal() {
   $("#methodModalOverlay").classList.add("hidden");
-}
-
-async function onMethodTrendboard() {
-  const btn = $("#methodTrendboardBtn");
-  const original = btn.innerHTML;
-  btn.disabled = true;
-  btn.innerHTML = `<span class="method-name"><span class="spinner"></span>분석 중...</span>`;
-  const ids = [...state.selected];
-  try {
-    const entry = await apiTrend(ids);
-    window.location.href = `trend.html?id=${entry.id}`;
-  } catch (e) {
-    showToast(e.message);
-    btn.disabled = false;
-    btn.innerHTML = original;
-  }
 }
 
 function onMethodChatGpt() {
@@ -289,7 +263,6 @@ async function init() {
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") closeMethodModal();
   });
-  $("#methodTrendboardBtn").addEventListener("click", onMethodTrendboard);
   $("#methodChatGptBtn").addEventListener("click", onMethodChatGpt);
   $("#methodClaudeBtn").addEventListener("click", onMethodClaude);
   $("#methodCopyLinkBtn").addEventListener("click", onHandoffCopy);

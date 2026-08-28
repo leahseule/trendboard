@@ -125,37 +125,26 @@ async def api_summarize(req: SummarizeRequest):
     return _serialize_item(item)
 
 
-class TrendRequest(BaseModel):
-    ids: list[str]
-
-
 def _resolve_picked(ids: list[str]) -> list[dict]:
     picked = [sources.find_item(item_id) for item_id in ids]
     return [i for i in picked if i]
 
 
-def _build_trend_input(picked: list[dict], excerpt_limit: int = 300) -> list[dict]:
-    return [
-        {"title": i["title"], "source": i["source"], "excerpt": _truncate(i.get("raw_text", ""), excerpt_limit)}
-        for i in picked
-    ]
+class CartRequest(BaseModel):
+    ids: list[str]
+    method: str  # "chatgpt" | "claude" — ChatGPT/Claude로 넘길 때 어떤 글 조합을 보냈는지
+    # "장바구니"로 자동 기록한다. OpenAI 호출은 안 함 — 결과는 외부 챗에서만 나옴.
 
 
-@app.post("/api/trend")
-async def api_trend(req: TrendRequest):
+@app.post("/api/cart")
+async def api_cart(req: CartRequest):
     picked = _resolve_picked(req.ids)
     if not picked:
         raise HTTPException(status_code=400, detail="no valid items")
-
-    result = summarize.summarize_trend(_build_trend_input(picked))
-    if result is None:
-        raise HTTPException(status_code=503, detail="AI 요약 비활성 (OPENAI_API_KEY 미설정)")
-
     entry = history_store.add_entry({
         "sources": sorted({i["source"] for i in picked}),
         "selectedItems": [{"id": i["id"], "title": i["title"], "url": i["url"], "source": i["source"]} for i in picked],
-        "intro": result["intro"],
-        "insights": result["insights"],
+        "method": req.method,
     })
     return entry
 

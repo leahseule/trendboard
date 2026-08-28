@@ -72,17 +72,6 @@ SLOT_FRAME_BODY = """당신은 아래 글(제목+짧은 발췌)들을 분석해 
   인용·근거를 들어도 된다. 어느 쪽이든 자료에 없는 내용을 지어내지 않는다.
 - 맨 앞에 전체를 관통하는 흐름을 2~4문장으로 쓴다. 뚜렷한 흐름이 없으면 없다고 쓴다."""
 
-SLOT_FRAME_JSON_SUFFIX = """
-
-반드시 아래 JSON 형식으로만 답한다(슬롯 이름에 "슬롯 N ·" 접두어를 반드시 포함할 것):
-{"intro": "...", "insights": [
-  {"slot": "슬롯 N · 이름", "tags": ["#키워드1", "#키워드2"], "whatIsSeen": "...",
-   "whyItMatters": "...", "whereItLeads": "...", "criticalView": "..."}
-]}"""
-
-SLOT_FRAME = SLOT_FRAME_BODY + SLOT_FRAME_JSON_SUFFIX
-
-
 def _items_block(items: list) -> str:
     lines = []
     for it in items:
@@ -95,11 +84,6 @@ def _items_block(items: list) -> str:
             "이 글 하나에서 뽑을 수 있는 신호로만 다뤄라(슬롯 5 비판적 독해 중심, 카드 1개)."
         )
     return text
-
-
-def build_trend_prompt(items: list) -> str:
-    """실제 OpenAI 호출용 — JSON 강제."""
-    return SLOT_FRAME + _items_block(items)
 
 
 def build_trend_prompt_for_chat(items: list, want_artifact: bool = False) -> str:
@@ -117,21 +101,3 @@ def build_trend_prompt_for_chat(items: list, want_artifact: bool = False) -> str
             "\n\n이 분석 결과 전체를 채팅 답변이 아니라 마크다운 아티팩트로 만들어서 보여줘."
         )
     return SLOT_FRAME_BODY + suffix + _items_block(items)
-
-
-def summarize_trend(items: list):
-    client = get_client()
-    if not client:
-        return None
-    prompt = build_trend_prompt(items)
-    resp = client.chat.completions.create(
-        model=_model(),
-        messages=[{"role": "user", "content": prompt}],
-        response_format={"type": "json_object"},
-        temperature=0.4,
-    )
-    data = json.loads(resp.choices[0].message.content)
-    return {
-        "intro": data.get("intro", ""),
-        "insights": data.get("insights", []),
-    }

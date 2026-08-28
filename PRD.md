@@ -154,6 +154,32 @@ arXiv·bioRxiv·MIT Tech Review 등에서 최신 연구/기술 정보를 모아 
     `justify-content: flex-end` → `space-between`로 바꿔 탭 왼쪽·버튼 오른쪽 배치, 탭
     배경이 트렌드바 배경(`--accent-soft`)과 같은 회색이라 안 보이던 문제는
     `.trendbar .tabs { background: var(--surface) }`로 흰색 대비를 줘서 해결.
+15. **"장바구니 히스토리"로 전면 재편(2026-08-28)**: TrendBoard 자체 OpenAI API로 분석하는
+    메뉴(모달의 "TrendBoard" 옵션, `POST /api/trend`, `summarize.summarize_trend`/
+    `build_trend_prompt`/`SLOT_FRAME_JSON_SUFFIX`)를 전부 없애고, ChatGPT로/Claude로 2가지
+    옵션만 남김. 히스토리 개념도 "OpenAI가 만든 인사이트 카드 저장소"에서 **"ChatGPT/Claude로
+    보낸 글 조합의 기록(장바구니)"**으로 바뀜:
+    - `POST /api/cart`(`ids`, `method`)가 새 엔드포인트. OpenAI 호출 없이 즉시
+      `history_store.add_entry()`로 `{sources, selectedItems, method}`만 저장 —
+      intro/insights 없음.
+    - **저장 시점**: ChatGPT/Claude 버튼을 누르는 순간 자동 저장(사용자 확인, 별도
+      "저장" 버튼 없음). 프런트에서 `window.open()`은 클릭 즉시 동기로 먼저 실행하고
+      `apiCart()`는 그 뒤 백그라운드로 보냄 — await 먼저 하면 팝업 차단에 걸릴 수 있어서
+      순서를 지켰음(8번 항목에서 프리필 링크를 동기 처리로 되돌렸던 것과 같은 이유).
+    - `promptPageUrl`/`handoffMessage`/`openHandoff`를 `app.js`에서 `common.js`로 옮겨
+      카드 화면과 히스토리 화면이 공유(히스토리의 "다시 열기"가 같은 함수를 씀).
+    - **히스토리 항목 클릭 시**: 그때 선택했던 기사 목록(제목·소스·원문 링크) +
+      "ChatGPT로 다시 열기"/"Claude로 다시 열기" 버튼(같은 조합으로 즉시 재핸드오프) +
+      프리필 링크(`/prompt?ids=...`) 직접 열기 링크를 보여줌. 예전 인사이트 카드
+      collapse-토글 UI는 삭제.
+    - **하위 호환**: 예전(OpenAI 직접 호출 시절) 히스토리 항목엔 `intro`/`insights`가
+      남아있을 수 있어, 있으면 그대로 아래에 이어서 보여줌(마이그레이션 없이 자연 공존).
+    - 카드 화면 상단 네비/모달 안내 문구도 "장바구니 히스토리"로 통일. 개별 카드
+      "AI 요약 보기"(OpenAI 3줄 요약)는 이번 범위 밖이라 그대로 유지.
+    - **알려진 제약**: "다시 열기"는 `items_store`(14일 보존)에서 원문을 다시 찾아
+      `/prompt`를 재생성하므로, 14일이 지나 원본 글이 보존 기간에서 빠지면 재생성이
+      실패할 수 있음(제목/링크 자체는 history.json에 별도 저장돼 안 사라짐, 재생성만
+      영향받음) — 아직 안 고침.
 
 ## 5. 비범위 (MVP 제외)
 - 국가/기업별 기술 수준 실시간 점수화 (기사 속 사무관도 "난도가 너무 높다"고 판단해 보류)

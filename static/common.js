@@ -24,6 +24,29 @@ function insightCardHtml(insight) {
     </div>`;
 }
 
+// API 비용 없이 ChatGPT/Claude로 넘기는 핸드오프 링크 3종. 카드 화면(app.js)과 장바구니
+// 히스토리(trend.js)가 공유한다 — 히스토리는 예전 조합을 "다시 열기"할 때 같은 함수를 씀.
+// 한글 프롬프트 전체를 URL에 실으면 퍼센트 인코딩 때문에 글자당 9배로 불어나 링크가 안 열릴
+// 수 있어서, ChatGPT/Claude에는 우리가 호스팅하는 /prompt 페이지로 가는 "짧은 링크"만 준다.
+function promptPageUrl(ids, target) {
+  const params = new URLSearchParams({ ids: ids.join(",") });
+  if (target) params.set("target", target);
+  return `${window.location.origin}/prompt?${params.toString()}`;
+}
+
+// target === "claude"일 때만 결과를 아티팩트로 만들어달라는 문구를 덧붙인다 — 아티팩트는
+// Claude 전용 기능이라 ChatGPT엔 의미가 없음.
+function handoffMessage(ids, target) {
+  const artifactNote = target === "claude" ? " 결과는 채팅 답변 대신 마크다운 아티팩트로 만들어서 보여줘." : "";
+  return `아래 링크 페이지에 있는 글들의 원문 링크와 본문 전체를 참고해서, 페이지에 안내된 방식대로 분석해줘.${artifactNote}\n${promptPageUrl(ids, target)}`;
+}
+
+function openHandoff(ids, target) {
+  const q = encodeURIComponent(handoffMessage(ids, target));
+  const url = target === "claude" ? `https://claude.ai/new?q=${q}` : `https://chatgpt.com/?q=${q}`;
+  window.open(url, "_blank", "noopener");
+}
+
 function formatDateTime(ts) {
   return new Date(ts).toLocaleString("ko-KR", {
     month: "long", day: "numeric", hour: "2-digit", minute: "2-digit",
@@ -66,15 +89,17 @@ async function apiSummarize(id) {
   return res.json();
 }
 
-async function apiTrend(ids) {
-  const res = await fetch("/api/trend", {
+// ChatGPT/Claude로 넘길 때 어떤 글 조합을 보냈는지 "장바구니"로 자동 기록한다.
+// OpenAI를 부르지 않으므로 즉시 끝나고, 결과(분석 내용)는 외부 챗에만 남는다.
+async function apiCart(ids, method) {
+  const res = await fetch("/api/cart", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ids }),
+    body: JSON.stringify({ ids, method }),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || `트렌드 분석 요청 실패 (${res.status})`);
+    throw new Error(err.detail || `장바구니 기록 실패 (${res.status})`);
   }
   return res.json();
 }

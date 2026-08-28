@@ -1,5 +1,6 @@
-// 페이지 트렌드 결과 + 히스토리(Obsidian 스타일 SNB) 화면 로직. 실제 백엔드를 호출한다.
-// 데이터/인사이트 렌더는 common.js 공유.
+// 장바구니 히스토리(Obsidian 스타일 SNB) 화면 로직. ChatGPT/Claude로 보낼 때 어떤 글
+// 조합을 보냈는지의 기록이다 — OpenAI 분석 결과 자체는 없다(외부 챗에만 남음).
+// promptPageUrl/openHandoff 등은 common.js 공유("다시 열기"가 app.js의 핸드오프와 동일 로직).
 
 let historyCache = [];
 let activeId = null;
@@ -25,22 +26,37 @@ function selectedItemRowHtml(item) {
     </li>`;
 }
 
+function methodLabel(method) {
+  if (method === "claude") return "Claude로 보냄";
+  if (method === "chatgpt") return "ChatGPT로 보냄";
+  return null;
+}
+
+// entry.intro/insights는 예전(OpenAI로 직접 분석하던 시절) 히스토리에만 있다 — 그 기능은
+// 없앴지만 예전 데이터가 남아있을 수 있어 있으면 그대로 보여준다(하위 호환).
 function resultHtml(entry) {
   const items = entry.selectedItems || [];
+  const ids = items.map((i) => i.id).filter(Boolean);
+  const methodBadge = methodLabel(entry.method);
+  const hasLegacyResult = entry.intro || (entry.insights && entry.insights.length);
   return `
     <div class="result-meta">
       <span class="result-date">${formatDateTime(entry.createdAt)}</span>
-      <span class="result-count">${items.length}개 글 선택</span>
+      <span class="result-count">${items.length}개 글</span>
+      ${methodBadge ? `<span class="result-method">${escapeHtml(methodBadge)}</span>` : ""}
     </div>
-    <div class="selected-items-section collapsed">
-      <button class="selected-items-toggle" type="button">
-        <span class="selected-items-label">분석에 사용한 글 <span class="selected-items-count">${items.length}</span></span>
-        <span class="selected-items-chevron">▾</span>
-      </button>
-      <ul class="selected-items-list">${items.map(selectedItemRowHtml).join("")}</ul>
-    </div>
-    <p class="trend-intro">${escapeHtml(entry.intro)}</p>
-    <div class="insight-list">${(entry.insights || []).map(insightCardHtml).join("")}</div>
+    <ul class="selected-items-list">${items.map(selectedItemRowHtml).join("")}</ul>
+    ${ids.length ? `
+    <div class="reopen-section">
+      <div class="reopen-actions">
+        <button class="method-option-inline" data-reopen="chatgpt">ChatGPT로 다시 열기</button>
+        <button class="method-option-inline" data-reopen="claude">Claude로 다시 열기</button>
+      </div>
+      <a class="prompt-link" href="${escapeHtml(promptPageUrl(ids))}" target="_blank" rel="noopener noreferrer">프리필 링크(프롬프트 페이지) 열기 ↗</a>
+    </div>` : ""}
+    ${hasLegacyResult ? `
+    <p class="trend-intro">${escapeHtml(entry.intro || "")}</p>
+    <div class="insight-list">${(entry.insights || []).map(insightCardHtml).join("")}</div>` : ""}
   `;
 }
 
@@ -49,8 +65,8 @@ function renderCurrent(entry) {
   if (!entry) {
     container.innerHTML = `
       <div class="empty-state">
-        아직 분석한 트렌드가 없습니다.<br>
-        <a href="index.html">카드에서 글을 선택하고 분석해보세요 →</a>
+        아직 장바구니 히스토리가 없습니다.<br>
+        <a href="index.html">카드에서 글을 선택하고 ChatGPT/Claude로 보내보세요 →</a>
       </div>`;
     return;
   }
@@ -106,14 +122,16 @@ async function init() {
   renderCurrent(historyCache.find((e) => e.id === activeId) || null);
 
   $("#currentResult").addEventListener("click", (e) => {
-    const toggle = e.target.closest(".selected-items-toggle");
-    if (!toggle) return;
-    toggle.closest(".selected-items-section").classList.toggle("collapsed");
+    const reopenBtn = e.target.closest("[data-reopen]");
+    if (!reopenBtn) return;
+    const entry = historyCache.find((en) => en.id === activeId);
+    const ids = ((entry && entry.selectedItems) || []).map((i) => i.id).filter(Boolean);
+    if (ids.length) openHandoff(ids, reopenBtn.dataset.reopen);
   });
 
   $("#clearHistoryBtn").addEventListener("click", async () => {
     if (historyCache.length === 0) return;
-    if (!confirm("저장된 트렌드 히스토리를 모두 지울까요?")) return;
+    if (!confirm("저장된 장바구니 히스토리를 모두 지울까요?")) return;
     try {
       await apiHistoryClear();
     } catch (e) {
