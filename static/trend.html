@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>페이지 트렌드 — TrendBoard</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="trend-body">
+<nav class="primary-nav">
+  <a href="index.html" class="primary-nav-item">카드</a>
+  <a href="trend.html" class="primary-nav-item active">히스토리</a>
+</nav>
+
+<div class="trend-shell">
+  <aside class="snb">
+    <div class="snb-header">
+      <h2>히스토리</h2>
+      <div class="snb-header-actions">
+        <button id="clearHistoryBtn" class="icon-btn" title="히스토리 전체 지우기">🗑</button>
+      </div>
+    </div>
+    <nav id="historyList" class="snb-list"></nav>
+  </aside>
+
+  <main class="trend-main">
+    <div id="currentResult" class="trend-current"></div>
+  </main>
+</div>
+
+<script src="common.js"></script>
+<script src="trend.js"></script>
+</body>
+</html>

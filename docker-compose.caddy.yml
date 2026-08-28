@@ -1,0 +1,15 @@
+services:
+  trendboard:
+    build: .
+    container_name: trendboard
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+    networks:
+      - weave_default
+
+networks:
+  weave_default:
+    external: true

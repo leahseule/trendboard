@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrendBoard — AI/개발 트렌드 대시보드</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav class="primary-nav">
+  <a href="index.html" class="primary-nav-item active">카드</a>
+  <a href="trend.html" class="primary-nav-item">히스토리</a>
+</nav>
+
+<header class="topbar">
+  <h1>TrendBoard</h1>
+  <p class="subtitle">GeekNews · AI타임스 · 네이버 IT에서 AI/개발 최신 글을 모아 요약합니다</p>
+  <div class="date-bar">
+    <span class="date-bar-label">기간 검색</span>
+    <input type="date" id="dateFrom">
+    <span class="date-sep">~</span>
+    <input type="date" id="dateTo">
+    <button id="dateSearchBtn">검색</button>
+    <button id="dateResetBtn" class="date-reset hidden">최근 3일로</button>
+    <span id="dateStatus" class="date-status">최근 3일 보는 중</span>
+  </div>
+  <div class="topbar-controls">
+    <div class="tabs" id="sourceTabs">
+      <button class="tab active" data-source="all">전체</button>
+      <button class="tab" data-source="aitimes">AI타임스</button>
+      <button class="tab" data-source="naver_it">네이버 IT</button>
+      <button class="tab" data-source="geeknews">GeekNews</button>
+    </div>
+    <div class="actions">
+      <button id="refreshBtn" title="새로고침">새로고침</button>
+    </div>
+  </div>
+</header>
+
+<div class="trendbar" id="trendbar">
+  <div class="handoff-group">
+    <span class="handoff-label">API 비용 없이 직접 물어보기</span>
+    <button id="handoffChatGptBtn" class="handoff-btn" disabled>ChatGPT로</button>
+    <button id="handoffClaudeBtn" class="handoff-btn" disabled>Claude로</button>
+    <button id="handoffCopyBtn" class="handoff-btn" disabled title="링크가 안 열리면 이걸로 복사해서 붙여넣어주세요">프롬프트 복사</button>
+  </div>
+  <button id="trendBtn" disabled>
+    <span id="trendCount" class="cart-count hidden">0</span>
+    선택 항목 트렌드 분석
+  </button>
+</div>
+
+<main id="cards" class="cards"></main>
+
+<div id="toast" class="toast hidden"></div>
+
+<script src="common.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
