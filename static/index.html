@@ -30,14 +30,22 @@
         </svg>
       </button>
       <div class="date-filter-popover hidden" id="dateFilterPopover">
-        <div class="date-filter-row">
-          <input type="date" id="dateFrom">
-          <span class="date-sep">~</span>
-          <input type="date" id="dateTo">
+        <div class="cal-header">
+          <button type="button" class="cal-nav" id="calPrevBtn" aria-label="이전 달">
+            <svg viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 1L1 7l6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <span class="cal-month-label" id="calMonthLabel"></span>
+          <button type="button" class="cal-nav" id="calNextBtn" aria-label="다음 달">
+            <svg viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1l6 6-6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
         </div>
+        <div class="cal-weekdays">
+          <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
         <div class="date-filter-actions">
           <button id="dateResetBtn" class="date-filter-ghost" type="button">최근 3일로</button>
-          <button id="dateSearchBtn" class="date-filter-apply" type="button">적용</button>
+          <button id="dateSearchBtn" class="date-filter-apply" type="button" disabled>적용</button>
         </div>
       </div>
     </div>

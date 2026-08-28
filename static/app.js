@@ -193,7 +193,85 @@ function updateDateFilterLabel() {
   trigger.classList.add("active");
 }
 
+function todayStr() {
+  const d = new Date();
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+function isoDate(y, m, d) {
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${y}-${pad(m + 1)}-${pad(d)}`;
+}
+
+// 네이티브 <input type="date">는 클릭했을 때 뜨는 팝업 달력 자체를 CSS로 못 건드려서
+// (브라우저/OS가 그리는 UI라 스타일링 불가) "달력이 올드하다"는 피드백을 해결할 수 없었다.
+// 그래서 달력 그리드를 직접 그리는 방식으로 바꿈 — 시작일 클릭 → 종료일 클릭 순서로
+// 범위를 고르고(Airbnb류 range picker와 동일한 상호작용), 적용을 눌러야 반영된다.
+const cal = { viewYear: 0, viewMonth: 0, start: null, end: null };
+
+function initCalFromState() {
+  const base = (state.dateRange && state.dateRange.start) || todayStr();
+  const [y, m] = base.split("-").map(Number);
+  cal.viewYear = y;
+  cal.viewMonth = m - 1;
+  cal.start = (state.dateRange && state.dateRange.start) || null;
+  cal.end = (state.dateRange && state.dateRange.end) || null;
+}
+
+function renderCalendar() {
+  const { viewYear, viewMonth, start, end } = cal;
+  $("#calMonthLabel").textContent = `${viewYear}년 ${viewMonth + 1}월`;
+
+  const today = todayStr();
+  const firstOfMonth = new Date(viewYear, viewMonth, 1);
+  const startWeekday = firstOfMonth.getDay();
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+  const daysInPrevMonth = new Date(viewYear, viewMonth, 0).getDate();
+
+  const cells = [];
+  for (let i = startWeekday - 1; i >= 0; i--) {
+    cells.push({ y: viewMonth === 0 ? viewYear - 1 : viewYear, m: viewMonth === 0 ? 11 : viewMonth - 1, d: daysInPrevMonth - i, outside: true });
+  }
+  for (let d = 1; d <= daysInMonth; d++) {
+    cells.push({ y: viewYear, m: viewMonth, d, outside: false });
+  }
+  let nextDay = 1;
+  while (cells.length % 7 !== 0) {
+    cells.push({ y: viewMonth === 11 ? viewYear + 1 : viewYear, m: viewMonth === 11 ? 0 : viewMonth + 1, d: nextDay, outside: true });
+    nextDay++;
+  }
+
+  $("#calGrid").innerHTML = cells.map((c) => {
+    const iso = isoDate(c.y, c.m, c.d);
+    const classes = ["cal-day"];
+    if (c.outside) classes.push("outside");
+    if (iso === today) classes.push("today");
+    if (start && iso === start) classes.push("range-start");
+    if (end && iso === end) classes.push("range-end");
+    if (start && end && iso > start && iso < end) classes.push("in-range");
+    const disabled = iso > today;
+    return `<button type="button" class="${classes.join(" ")}" data-date="${iso}" ${disabled ? "disabled" : ""}>${c.d}</button>`;
+  }).join("");
+}
+
+function onCalDayClick(iso) {
+  if (!cal.start || (cal.start && cal.end)) {
+    cal.start = iso;
+    cal.end = null;
+  } else if (iso < cal.start) {
+    cal.start = iso;
+  } else {
+    cal.end = iso;
+  }
+  renderCalendar();
+  $("#dateSearchBtn").disabled = !(cal.start && cal.end);
+}
+
 function openDateFilterPopover() {
+  initCalFromState();
+  renderCalendar();
+  $("#dateSearchBtn").disabled = !(cal.start && cal.end);
   $("#dateFilter").classList.add("open");
   $("#dateFilterPopover").classList.remove("hidden");
 }
@@ -208,35 +286,9 @@ function toggleDateFilterPopover() {
   else closeDateFilterPopover();
 }
 
-function todayStr() {
-  const d = new Date();
-  const pad = (n) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-}
-
 function onDateSearch() {
-  const start = $("#dateFrom").value || null;
-  const end = $("#dateTo").value || null;
-  const today = todayStr();
-
-  if (!start && !end) {
-    showToast("검색할 날짜를 하나 이상 입력해주세요.");
-    return;
-  }
-  if (start && start > today) {
-    showToast("시작일은 오늘보다 미래일 수 없어요.");
-    return;
-  }
-  if (end && end > today) {
-    showToast("종료일은 오늘보다 미래일 수 없어요.");
-    return;
-  }
-  if (start && end && start > end) {
-    showToast("시작일이 종료일보다 늦을 수 없어요.");
-    return;
-  }
-
-  state.dateRange = { start, end };
+  if (!cal.start || !cal.end) return;
+  state.dateRange = { start: cal.start, end: cal.end };
   updateDateFilterLabel();
   closeDateFilterPopover();
   loadItems(false);
@@ -244,8 +296,8 @@ function onDateSearch() {
 
 function onDateReset() {
   state.dateRange = null;
-  $("#dateFrom").value = "";
-  $("#dateTo").value = "";
+  cal.start = null;
+  cal.end = null;
   updateDateFilterLabel();
   closeDateFilterPopover();
   loadItems(false);
@@ -300,10 +352,21 @@ async function init() {
   $("#dateFilterPopover").addEventListener("click", (e) => e.stopPropagation());
   $("#dateSearchBtn").addEventListener("click", onDateSearch);
   $("#dateResetBtn").addEventListener("click", onDateReset);
-
-  const today = todayStr();
-  $("#dateFrom").max = today;
-  $("#dateTo").max = today;
+  $("#calPrevBtn").addEventListener("click", () => {
+    cal.viewMonth -= 1;
+    if (cal.viewMonth < 0) { cal.viewMonth = 11; cal.viewYear -= 1; }
+    renderCalendar();
+  });
+  $("#calNextBtn").addEventListener("click", () => {
+    cal.viewMonth += 1;
+    if (cal.viewMonth > 11) { cal.viewMonth = 0; cal.viewYear += 1; }
+    renderCalendar();
+  });
+  $("#calGrid").addEventListener("click", (e) => {
+    const btn = e.target.closest(".cal-day");
+    if (!btn || btn.disabled) return;
+    onCalDayClick(btn.dataset.date);
+  });
 }
 
 document.addEventListener("DOMContentLoaded", init);
