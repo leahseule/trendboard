@@ -48,9 +48,11 @@ function resultHtml(entry) {
       <div class="reopen-actions">
         <button class="method-option-inline" data-reopen="chatgpt">ChatGPT로 다시 열기</button>
         <button class="method-option-inline" data-reopen="claude">Claude로 다시 열기</button>
-        <button class="method-option-inline" id="copyPromptBtn" disabled>프롬프트 복사</button>
       </div>
-      <div class="prompt-preview-label">프리필 링크에 담기는 내용</div>
+      <div class="prompt-preview-label">
+        프리필 링크에 담기는 내용
+        <button class="copy-inline-btn" id="copyPromptBtn" disabled>복사하기</button>
+      </div>
       <div id="promptPreview" class="prompt-preview"><span class="spinner"></span>불러오는 중...</div>
     </div>` : ""}
     <div class="prompt-preview-label">분석에 사용한 글</div>

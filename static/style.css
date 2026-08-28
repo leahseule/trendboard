@@ -670,22 +670,38 @@ a.selected-item-row:hover .selected-item-title {
   cursor: not-allowed;
 }
 
-.prompt-link {
-  display: inline-block;
-  font-size: 12px;
-  color: var(--text-muted);
-  text-decoration: underline;
-}
-
-.prompt-link:hover { color: var(--text); }
-
 .prompt-preview-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   font-size: 11px;
   font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.3px;
   margin: 4px 0 8px;
+}
+
+.copy-inline-btn {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: normal;
+  cursor: pointer;
+}
+
+.copy-inline-btn:hover:not(:disabled) { background: var(--surface-hover); }
+
+.copy-inline-btn:disabled {
+  color: var(--text-muted);
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .prompt-preview {
@@ -700,6 +716,7 @@ a.selected-item-row:hover .selected-item-title {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 14px 16px;
+  font-family: "Dotum", "돋움", "DotumChe", "돋움체", "Malgun Gothic", "맑은 고딕", sans-serif;
   font-size: 12.5px;
   line-height: 1.6;
   color: var(--text);

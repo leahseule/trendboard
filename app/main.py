@@ -211,7 +211,8 @@ async def prompt_page(ids: str, target: str | None = None):
   button {{ margin: 16px 0; padding: 8px 16px; cursor: pointer; border: 1px solid #ccc;
            border-radius: 6px; background: #fff; }}
   pre {{ white-space: pre-wrap; word-break: break-word; background: #f6f6f6; padding: 20px;
-        border-radius: 8px; font-size: 0.88rem; }}
+        border-radius: 8px; font-size: 0.88rem;
+        font-family: "Dotum", "돋움", "DotumChe", "돋움체", "Malgun Gothic", "맑은 고딕", sans-serif; }}
 </style>
 </head>
 <body>
