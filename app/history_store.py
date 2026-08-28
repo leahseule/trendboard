@@ -42,7 +42,3 @@ def add_entry(data: dict):
     entries.insert(0, entry)
     _save(entries)
     return entry
-
-
-def clear_history():
-    _save([])

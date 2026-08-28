@@ -518,27 +518,6 @@ body {
   margin: 0;
 }
 
-.snb-header-actions {
-  display: flex;
-  gap: 4px;
-}
-
-.icon-btn {
-  border: none;
-  background: transparent;
-  color: var(--text-muted);
-  width: 26px;
-  height: 26px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.icon-btn:hover { background: var(--surface-hover); color: var(--text); }
-
 .snb-list {
   flex: 1;
   overflow-y: auto;

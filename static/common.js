@@ -117,8 +117,3 @@ async function apiHistoryGet(id) {
   return res.json();
 }
 
-async function apiHistoryClear() {
-  const res = await fetch("/api/history", { method: "DELETE" });
-  if (!res.ok) throw new Error(`히스토리 삭제 실패 (${res.status})`);
-  return res.json();
-}

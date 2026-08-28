@@ -43,7 +43,6 @@ function resultHtml(entry) {
       <span class="result-count">${items.length}개 글</span>
       ${methodBadge ? `<span class="result-method">${escapeHtml(methodBadge)}</span>` : ""}
     </div>
-    <ul class="selected-items-list">${items.map(selectedItemRowHtml).join("")}</ul>
     ${ids.length ? `
     <div class="reopen-section">
       <div class="reopen-actions">
@@ -54,6 +53,8 @@ function resultHtml(entry) {
       <div class="prompt-preview-label">프리필 링크에 담기는 내용</div>
       <div id="promptPreview" class="prompt-preview"><span class="spinner"></span>불러오는 중...</div>
     </div>` : ""}
+    <div class="prompt-preview-label">분석에 사용한 글</div>
+    <ul class="selected-items-list">${items.map(selectedItemRowHtml).join("")}</ul>
   `;
 }
 
@@ -153,22 +154,6 @@ async function init() {
     const entry = historyCache.find((en) => en.id === activeId);
     const ids = ((entry && entry.selectedItems) || []).map((i) => i.id).filter(Boolean);
     if (ids.length) openHandoff(ids, reopenBtn.dataset.reopen);
-  });
-
-  $("#clearHistoryBtn").addEventListener("click", async () => {
-    if (historyCache.length === 0) return;
-    if (!confirm("저장된 히스토리를 모두 지울까요?")) return;
-    try {
-      await apiHistoryClear();
-    } catch (e) {
-      showToastFallback(e.message);
-      return;
-    }
-    historyCache = [];
-    activeId = null;
-    renderHistoryList();
-    renderCurrent(null);
-    window.history.pushState({}, "", "trend.html");
   });
 
   window.addEventListener("popstate", () => {

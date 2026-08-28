@@ -192,6 +192,13 @@ arXiv·bioRxiv·MIT Tech Review 등에서 최신 연구/기술 정보를 모아 
     내용은 다 없애도 된다"고 확인 — 로컬 `data/history.json`도 비웠음), 관련 죽은 CSS
     (`.trend-intro`/`.insight-*`/`.close-btn`/`#trendContent`)도 같이 정리. 메뉴명은
     "장바구니 히스토리"에서 **"히스토리"**로 되돌림(너무 길다는 피드백).
+17. **히스토리 지우기 기능 삭제 + 기사 링크 목록을 맨 아래로(2026-08-28)**: 🗑 "히스토리
+    전체 지우기" 버튼을 UI·JS·백엔드까지 전부 제거(`clearHistoryBtn`, `apiHistoryClear()`,
+    `DELETE /api/history`, `history_store.clear_history()`, 관련 죽은 CSS
+    `.snb-header-actions`/`.icon-btn`도 정리) — 히스토리는 이제 순수 기록용, 지우는
+    기능은 필요 없다는 판단. 히스토리 상세 화면의 "분석에 사용한 글"(기사 링크 목록)은
+    맨 위에서 **맨 아래로** 이동 — 프리필 링크에 담기는 실제 내용(프롬프트 전문)이
+    먼저 보이고, 원문 링크 목록은 그 아래 부가 정보로.
 
 ## 5. 비범위 (MVP 제외)
 - 국가/기업별 기술 수준 실시간 점수화 (기사 속 사무관도 "난도가 너무 높다"고 판단해 보류)

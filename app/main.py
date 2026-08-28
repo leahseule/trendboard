@@ -251,12 +251,6 @@ async def api_history_get(entry_id: str):
     return entry
 
 
-@app.delete("/api/history")
-async def api_history_clear():
-    history_store.clear_history()
-    return {"ok": True}
-
-
 # /api/* 라우트들 뒤에 마지막으로 등록해야 함 — html=True라 "/"는 index.html,
 # "/trend.html"·"/style.css" 등은 같은 폴더 안 파일을 그대로 서빙(상대경로 그대로 동작).
 app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="static")
