@@ -236,6 +236,22 @@ arXiv·bioRxiv·MIT Tech Review 등에서 최신 연구/기술 정보를 모아 
     `.snb-item-date` 11px→**14px**(+ 굵게, 색도 `--text-muted`→`--text`). 동시에 목록에서
     항목을 클릭해보지 않아도 몇 개 글이 묶여있는지 알 수 있게 `${count}개 글`을 날짜
     아래 같이 표시(`.snb-item-count`, 12px).
+22. **`/prompt` HEAD 요청 404 버그 수정(2026-08-28) — Claude 핸드오프 실패의 진짜 원인**:
+    20번 항목에서 URL을 짧게 줄였는데도 "히스토리에서 Claude로 다시 열기"가 계속
+    실패한다는 신고를 받고 재조사. `curl -I`로 직접 찍어보니 **`GET /prompt`는 200인데
+    `HEAD /prompt`는 404** — Claude(등 외부 fetch/브라우징 도구)가 링크를 열기 전에 HEAD로
+    먼저 확인하는 경우 그 시점에 404를 받고 아예 포기했을 가능성이 큼. 근본 원인은 우리
+    코드가 아니라 **설치된 FastAPI(0.141.1)/Starlette(1.6.0) 조합의 동작** — Starlette
+    기본 `Route`(`/docs` 등 FastAPI 내장 라우트)는 GET에 HEAD가 자동으로 붙지만
+    (`Route.__init__`의 `if "GET" in methods: methods.add("HEAD")`), `@app.get(...)`로
+    만든 FastAPI `APIRoute`는 이 버전에서 그 로직을 안 타서 `HEAD`가 라우트의 `methods`
+    집합에 안 들어감(컨테이너 안에서 `app.routes`를 직접 찍어 확인). **모든 GET
+    엔드포인트**(`/prompt`, `/api/health`, `/api/items`, `/api/prompt`, `/api/history`,
+    `/api/history-used-ids`, `/api/history/{entry_id}`)를
+    `@app.get(...)` → `@app.api_route(..., methods=["GET", "HEAD"])`로 바꿔 해결. 로컬에서
+    `curl -I`로 전부 200 확인함. **핸드오프는 클립보드 복사 방식으로 바꾸지 않고 링크
+    방식을 유지**하기로 함(사용자 의사 확인) — 이 수정으로 링크 방식이 실제로 안정적으로
+    동작하는지는 다음 실사용에서 재확인 필요.
 
 ## 5. 비범위 (MVP 제외)
 - 국가/기업별 기술 수준 실시간 점수화 (기사 속 사무관도 "난도가 너무 높다"고 판단해 보류)

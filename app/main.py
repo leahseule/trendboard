@@ -48,7 +48,7 @@ def _serialize_item(item: dict) -> dict:
     return out
 
 
-@app.get("/api/health")
+@app.api_route("/api/health", methods=["GET", "HEAD"])
 async def health():
     return {"ok": True, "ai_enabled": summarize.get_client() is not None}
 
@@ -80,7 +80,7 @@ def _in_range(item: dict, since: datetime | None, until: datetime | None) -> boo
     return True
 
 
-@app.get("/api/items")
+@app.api_route("/api/items", methods=["GET", "HEAD"])
 async def api_items(
     source: str = "all",
     refresh: bool = False,
@@ -171,7 +171,7 @@ async def _build_prompt_data(ids: str, target: str | None) -> tuple[list[dict], 
     return full_input, prompt_text
 
 
-@app.get("/api/prompt")
+@app.api_route("/api/prompt", methods=["GET", "HEAD"])
 async def api_prompt(ids: str, target: str | None = None):
     full_input, prompt_text = await _build_prompt_data(ids, target)
     return {
@@ -180,7 +180,7 @@ async def api_prompt(ids: str, target: str | None = None):
     }
 
 
-@app.get("/prompt", response_class=HTMLResponse)
+@app.api_route("/prompt", methods=["GET", "HEAD"], response_class=HTMLResponse)
 async def prompt_page(ids: str, target: str | None = None):
     """API 비용 없이 ChatGPT/Claude로 넘기는 핸드오프용 페이지. 카드 화면에서는 이 페이지로
     가는 짧은 링크만 ChatGPT/Claude에 전달한다(전체 프롬프트를 URL에 실으면 한글 퍼센트
@@ -229,12 +229,12 @@ async def prompt_page(ids: str, target: str | None = None):
     return HTMLResponse(body)
 
 
-@app.get("/api/history")
+@app.api_route("/api/history", methods=["GET", "HEAD"])
 async def api_history_list():
     return {"history": history_store.list_history()}
 
 
-@app.get("/api/history-used-ids")
+@app.api_route("/api/history-used-ids", methods=["GET", "HEAD"])
 async def api_history_used_ids():
     """지금까지 트렌드 분석에 한 번이라도 포함됐던 글의 id 목록. 카드 목록에서
     "이미 분석함" 표시를 하는 데 쓴다. 예전 히스토리(id 저장 전)는 url로 id를 다시 계산해 맞춘다."""
@@ -247,7 +247,7 @@ async def api_history_used_ids():
     return {"ids": sorted(ids)}
 
 
-@app.get("/api/history/{entry_id}")
+@app.api_route("/api/history/{entry_id}", methods=["GET", "HEAD"])
 async def api_history_get(entry_id: str):
     entry = history_store.get_entry(entry_id)
     if not entry:
