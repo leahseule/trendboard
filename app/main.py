@@ -214,7 +214,7 @@ async def prompt_page(ids: str, target: str | None = None):
   button {{ margin: 16px 0; padding: 8px 16px; cursor: pointer; border: 1px solid #ccc;
            border-radius: 6px; background: #fff; }}
   pre {{ white-space: pre-wrap; word-break: break-word; background: #f6f6f6; padding: 20px;
-        border-radius: 8px; font-size: 0.88rem;
+        border-radius: 8px; font-size: 0.78rem; line-height: 2;
         font-family: "JetBrains Mono", "Noto Sans KR", "Pretendard", "Consolas", "Menlo", "Monaco", monospace; }}
 </style>
 </head>

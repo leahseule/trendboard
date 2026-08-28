@@ -219,6 +219,9 @@ arXiv·bioRxiv·MIT Tech Review 등에서 최신 연구/기술 정보를 모아 
     "Monaco", monospace`로 지정 — 영문·기호는 JetBrains Mono(요즘 개발자들이 많이 쓰는
     트렌디한 코딩 폰트), 한글은 Noto Sans KR(굴림 대신 모던한 느낌)이 글자 단위로 자동
     폴백. 브라우저에서 `document.fonts`로 실제 로드 확인함.
+19. **프롬프트 텍스트 가독성 조정(2026-08-28)**: 글자는 작게, 줄간격은 넓게 — 히스토리
+    `.prompt-text`는 12.5px/line-height 1.6 → **11px/line-height 2**로, `/prompt` 페이지
+    `pre`도 같은 비율로(0.88rem→0.78rem, line-height 2 추가) 맞춤.
 
 ## 5. 비범위 (MVP 제외)
 - 국가/기업별 기술 수준 실시간 점수화 (기사 속 사무관도 "난도가 너무 높다"고 판단해 보류)
