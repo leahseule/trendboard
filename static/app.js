@@ -24,8 +24,34 @@ function showToast(msg) {
   showToast._t = setTimeout(() => toast.classList.add("hidden"), 2600);
 }
 
+// 백엔드는 published(발행시각) 기준으로 소스를 섞어 정렬해서 준다. 그런데 네이버 IT는
+// 목록 페이지에 정확한 발행시각이 없어 "수집 시각"을 대신 쓰는데, 한 번 수집할 때 수백
+// 개 기사가 같은 타임스탬프를 갖다 보니 정렬했을 때 네이버 IT가 한 덩어리로 뭉쳐서
+// "소스별로 정렬된 것처럼" 보이는 문제가 있었다(실사용 신고로 발견). 상세 페이지까지
+// 긁어서 정확한 발행시각을 얻는 건 네이버에 보내는 요청이 크게 늘어서 보류하고, 대신
+// 라운드로빈으로 소스를 섞는다 — 각 소스 내부의 최신순은 그대로 유지하면서 같은 소스가
+// 연달아 나오지 않게만 한다(진짜 등록순은 아니지만 체감상 뭉침은 사라짐).
+function interleaveBySource(items) {
+  const buckets = new Map();
+  for (const item of items) {
+    if (!buckets.has(item.source)) buckets.set(item.source, []);
+    buckets.get(item.source).push(item);
+  }
+  // 단순 라운드로빈은 소스별 개수가 크게 다르면(예: 네이버 IT가 나머지 둘을 합친 것보다
+  // 많음) 작은 버킷이 먼저 바닥나고 큰 버킷만 뒤에 몰아서 남는 문제가 있었다. 대신 각
+  // 소스의 항목을 전체 길이에 비례한 위치에 고르게 흩뿌린다(각 소스 내부의 최신순은
+  // 그대로 유지).
+  const scored = [];
+  for (const bucket of buckets.values()) {
+    const step = items.length / bucket.length;
+    bucket.forEach((item, i) => scored.push({ item, pos: i * step }));
+  }
+  scored.sort((a, b) => a.pos - b.pos);
+  return scored.map((s) => s.item);
+}
+
 function filteredItems() {
-  if (state.activeSource === "all") return state.items;
+  if (state.activeSource === "all") return interleaveBySource(state.items);
   return state.items.filter((i) => i.source === state.activeSource);
 }
 
