@@ -121,19 +121,7 @@ async def health():
     return {"ok": True, "ai_enabled": summarize.get_client() is not None}
 
 
-def _parse_date_param(s: str, end_of_day: bool = False) -> datetime:
-    try:
-        dt = datetime.fromisoformat(s)
-    except ValueError:
-        raise HTTPException(status_code=400, detail=f"날짜 형식이 올바르지 않습니다: {s} (예: 2026-08-25)")
-    if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=timezone.utc)
-    if end_of_day:
-        dt = dt.replace(hour=23, minute=59, second=59)
-    return dt
-
-
-def _in_range(item: dict, since: datetime | None, until: datetime | None) -> bool:
+def _in_range(item: dict, since: datetime) -> bool:
     pub = item.get("published")
     if not pub:
         return False
@@ -141,36 +129,14 @@ def _in_range(item: dict, since: datetime | None, until: datetime | None) -> boo
         pub_dt = datetime.fromisoformat(pub)
     except ValueError:
         return False
-    if since and pub_dt < since:
-        return False
-    if until and pub_dt > until:
-        return False
-    return True
+    return pub_dt >= since
 
 
 @app.api_route("/api/items", methods=["GET", "HEAD"])
-async def api_items(
-    source: str = "all",
-    refresh: bool = False,
-    days: int = 3,
-    start: str | None = None,
-    end: str | None = None,
-):
+async def api_items(source: str = "all", refresh: bool = False, days: int = 3):
     items = await sources.get_items(source=source, force_refresh=refresh)
-    now = datetime.now(timezone.utc)
-    if start or end:
-        since = _parse_date_param(start) if start else None
-        until = _parse_date_param(end, end_of_day=True) if end else None
-        if since and since > now:
-            raise HTTPException(status_code=400, detail="시작일은 오늘보다 미래일 수 없습니다.")
-        if until and until > now:
-            until = now
-        if since and until and since > until:
-            raise HTTPException(status_code=400, detail="시작일이 종료일보다 늦을 수 없습니다.")
-    else:
-        since = now - timedelta(days=days)
-        until = None
-    items = [i for i in items if _in_range(i, since, until)]
+    since = datetime.now(timezone.utc) - timedelta(days=days)
+    items = [i for i in items if _in_range(i, since)]
     return {"items": [_serialize_item(i) for i in items]}
 
 

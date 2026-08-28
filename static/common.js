@@ -59,11 +59,8 @@ function formatDateTime(ts) {
 
 // --- 백엔드 API 래퍼 ---
 
-// range: 없으면 기본(최근 3일). {start, end} 중 하나 이상 주면 그 기간으로 검색(서버가 우선 적용).
-async function apiGetItems(source = "all", refresh = false, range = null) {
+async function apiGetItems(source = "all", refresh = false) {
   const params = new URLSearchParams({ source, refresh: String(refresh) });
-  if (range && range.start) params.set("start", range.start);
-  if (range && range.end) params.set("end", range.end);
   const res = await fetch(`/api/items?${params.toString()}`);
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));

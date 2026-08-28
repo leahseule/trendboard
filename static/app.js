@@ -4,7 +4,6 @@ const state = {
   items: [],
   activeSource: "all",
   selected: new Set(),
-  dateRange: null, // null이면 기본(최근 3일). {start, end} 형태로 지정하면 그 기간.
   usedIds: new Set(), // 예전 트렌드 분석에 한 번이라도 포함됐던 글의 id
 };
 
@@ -33,7 +32,7 @@ async function loadItems(refresh = false) {
   const container = $("#cards");
   container.innerHTML = `<div class="empty-state"><span class="spinner"></span>불러오는 중...</div>`;
   try {
-    state.items = await apiGetItems("all", refresh, state.dateRange);
+    state.items = await apiGetItems("all", refresh);
   } catch (e) {
     container.innerHTML = `<div class="empty-state">글을 불러오지 못했습니다. 백엔드가 켜져 있는지 확인해주세요.<br>${escapeHtml(e.message)}</div>`;
     return;
@@ -45,10 +44,7 @@ function renderCards() {
   const items = filteredItems();
   const container = $("#cards");
   if (items.length === 0) {
-    const hint = state.dateRange
-      ? "선택한 기간에 해당하는 글이 없습니다. RSS는 최근 게시물만 제공해서, 서비스가 그 기간 동안 실제로 수집해둔 글이 없으면 검색되지 않을 수 있어요."
-      : "이 소스에는 아직 표시할 글이 없습니다.";
-    container.innerHTML = `<div class="empty-state">${hint}</div>`;
+    container.innerHTML = `<div class="empty-state">이 소스에는 아직 표시할 글이 없습니다.</div>`;
     return;
   }
   container.innerHTML = items.map(cardHtml).join("");
@@ -175,134 +171,6 @@ async function onRefresh() {
   showToast("새로고침했어요.");
 }
 
-function shortDate(iso) {
-  const [, m, d] = iso.split("-");
-  return `${Number(m)}/${Number(d)}`;
-}
-
-function updateDateFilterLabel() {
-  const label = $("#dateFilterLabel");
-  const trigger = $("#dateFilterTrigger");
-  if (!state.dateRange) {
-    label.textContent = "최근 3일";
-    trigger.classList.remove("active");
-    return;
-  }
-  const { start, end } = state.dateRange;
-  label.textContent = `${start ? shortDate(start) : "처음"} ~ ${end ? shortDate(end) : "지금"}`;
-  trigger.classList.add("active");
-}
-
-function todayStr() {
-  const d = new Date();
-  const pad = (n) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-}
-
-function isoDate(y, m, d) {
-  const pad = (n) => String(n).padStart(2, "0");
-  return `${y}-${pad(m + 1)}-${pad(d)}`;
-}
-
-// 네이티브 <input type="date">는 클릭했을 때 뜨는 팝업 달력 자체를 CSS로 못 건드려서
-// (브라우저/OS가 그리는 UI라 스타일링 불가) "달력이 올드하다"는 피드백을 해결할 수 없었다.
-// 그래서 달력 그리드를 직접 그리는 방식으로 바꿈 — 시작일 클릭 → 종료일 클릭 순서로
-// 범위를 고르고(Airbnb류 range picker와 동일한 상호작용), 적용을 눌러야 반영된다.
-const cal = { viewYear: 0, viewMonth: 0, start: null, end: null };
-
-function initCalFromState() {
-  const base = (state.dateRange && state.dateRange.start) || todayStr();
-  const [y, m] = base.split("-").map(Number);
-  cal.viewYear = y;
-  cal.viewMonth = m - 1;
-  cal.start = (state.dateRange && state.dateRange.start) || null;
-  cal.end = (state.dateRange && state.dateRange.end) || null;
-}
-
-function renderCalendar() {
-  const { viewYear, viewMonth, start, end } = cal;
-  $("#calMonthLabel").textContent = `${viewYear}년 ${viewMonth + 1}월`;
-
-  const today = todayStr();
-  const firstOfMonth = new Date(viewYear, viewMonth, 1);
-  const startWeekday = firstOfMonth.getDay();
-  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
-  const daysInPrevMonth = new Date(viewYear, viewMonth, 0).getDate();
-
-  const cells = [];
-  for (let i = startWeekday - 1; i >= 0; i--) {
-    cells.push({ y: viewMonth === 0 ? viewYear - 1 : viewYear, m: viewMonth === 0 ? 11 : viewMonth - 1, d: daysInPrevMonth - i, outside: true });
-  }
-  for (let d = 1; d <= daysInMonth; d++) {
-    cells.push({ y: viewYear, m: viewMonth, d, outside: false });
-  }
-  let nextDay = 1;
-  while (cells.length % 7 !== 0) {
-    cells.push({ y: viewMonth === 11 ? viewYear + 1 : viewYear, m: viewMonth === 11 ? 0 : viewMonth + 1, d: nextDay, outside: true });
-    nextDay++;
-  }
-
-  $("#calGrid").innerHTML = cells.map((c) => {
-    const iso = isoDate(c.y, c.m, c.d);
-    const classes = ["cal-day"];
-    if (c.outside) classes.push("outside");
-    if (iso === today) classes.push("today");
-    if (start && iso === start) classes.push("range-start");
-    if (end && iso === end) classes.push("range-end");
-    if (start && end && iso > start && iso < end) classes.push("in-range");
-    const disabled = iso > today;
-    return `<button type="button" class="${classes.join(" ")}" data-date="${iso}" ${disabled ? "disabled" : ""}>${c.d}</button>`;
-  }).join("");
-}
-
-function onCalDayClick(iso) {
-  if (!cal.start || (cal.start && cal.end)) {
-    cal.start = iso;
-    cal.end = null;
-  } else if (iso < cal.start) {
-    cal.start = iso;
-  } else {
-    cal.end = iso;
-  }
-  renderCalendar();
-  $("#dateSearchBtn").disabled = !(cal.start && cal.end);
-}
-
-function openDateFilterPopover() {
-  initCalFromState();
-  renderCalendar();
-  $("#dateSearchBtn").disabled = !(cal.start && cal.end);
-  $("#dateFilter").classList.add("open");
-  $("#dateFilterPopover").classList.remove("hidden");
-}
-
-function closeDateFilterPopover() {
-  $("#dateFilter").classList.remove("open");
-  $("#dateFilterPopover").classList.add("hidden");
-}
-
-function toggleDateFilterPopover() {
-  if ($("#dateFilterPopover").classList.contains("hidden")) openDateFilterPopover();
-  else closeDateFilterPopover();
-}
-
-function onDateSearch() {
-  if (!cal.start || !cal.end) return;
-  state.dateRange = { start: cal.start, end: cal.end };
-  updateDateFilterLabel();
-  closeDateFilterPopover();
-  loadItems(false);
-}
-
-function onDateReset() {
-  state.dateRange = null;
-  cal.start = null;
-  cal.end = null;
-  updateDateFilterLabel();
-  closeDateFilterPopover();
-  loadItems(false);
-}
-
 // "선택 항목 트렌드 분석" 클릭 → ChatGPT/Claude 중 하나를 고르는 모달을 먼저 띄운다.
 function openMethodModal() {
   if (state.selected.size < 1) return;
@@ -335,38 +203,11 @@ async function init() {
     if (e.target.id === "methodModalOverlay") closeMethodModal();
   });
   document.addEventListener("keydown", (e) => {
-    if (e.key !== "Escape") return;
-    closeMethodModal();
-    closeDateFilterPopover();
+    if (e.key === "Escape") closeMethodModal();
   });
   $("#methodChatGptBtn").addEventListener("click", onMethodChatGpt);
   $("#methodClaudeBtn").addEventListener("click", onMethodClaude);
   $("#methodCopyLinkBtn").addEventListener("click", onHandoffCopy);
-  $("#dateFilterTrigger").addEventListener("click", (e) => {
-    e.stopPropagation();
-    toggleDateFilterPopover();
-  });
-  document.addEventListener("click", (e) => {
-    if (!$("#dateFilter").contains(e.target)) closeDateFilterPopover();
-  });
-  $("#dateFilterPopover").addEventListener("click", (e) => e.stopPropagation());
-  $("#dateSearchBtn").addEventListener("click", onDateSearch);
-  $("#dateResetBtn").addEventListener("click", onDateReset);
-  $("#calPrevBtn").addEventListener("click", () => {
-    cal.viewMonth -= 1;
-    if (cal.viewMonth < 0) { cal.viewMonth = 11; cal.viewYear -= 1; }
-    renderCalendar();
-  });
-  $("#calNextBtn").addEventListener("click", () => {
-    cal.viewMonth += 1;
-    if (cal.viewMonth > 11) { cal.viewMonth = 0; cal.viewYear += 1; }
-    renderCalendar();
-  });
-  $("#calGrid").addEventListener("click", (e) => {
-    const btn = e.target.closest(".cal-day");
-    if (!btn || btn.disabled) return;
-    onCalDayClick(btn.dataset.date);
-  });
 }
 
 document.addEventListener("DOMContentLoaded", init);
