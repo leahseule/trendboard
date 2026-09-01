@@ -78,16 +78,7 @@ function renderCards() {
   items.forEach((item) => {
     const btn = $(`#summarize-${item.id}`);
     if (btn) btn.addEventListener("click", (e) => { e.stopPropagation(); onSummarize(item.id); });
-    const card = $(`#card-${item.id}`);
-    // target="_blank" 기본 동작은 새 탭을 열면서 포커스도 그리로 넘긴다 — 새 탭은 열되
-    // 지금 보던 카드 목록에 그대로 머무르고 싶다는 요청으로, window.open 후 즉시
-    // window.focus()로 원래 탭에 포커스를 돌려준다(대부분 브라우저에서 동작).
-    card.querySelector(".card-title").addEventListener("click", (e) => {
-      e.preventDefault();
-      window.open(item.url, "_blank", "noopener");
-      window.focus();
-    });
-    card.addEventListener("click", (e) => {
+    $(`#card-${item.id}`).addEventListener("click", (e) => {
       if (e.target.closest(".summarize-btn") || e.target.closest(".card-title")) return;
       onSelect(item.id, !state.selected.has(item.id));
     });
