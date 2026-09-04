@@ -37,10 +37,13 @@
     <button class="tab" data-source="naver_it">네이버 IT</button>
     <button class="tab" data-source="geeknews">GeekNews</button>
   </div>
-  <button id="trendBtn" disabled>
-    <span id="trendCount" class="cart-count hidden">0</span>
-    선택 항목 인사이트 분석
-  </button>
+  <div class="trend-actions">
+    <button id="clearSelectionBtn" class="clear-selection-btn hidden" type="button">선택 해제</button>
+    <button id="trendBtn" disabled>
+      <span id="trendCount" class="cart-count hidden">0</span>
+      선택 항목 인사이트 분석
+    </button>
+  </div>
 </div>
 
 <main id="cards" class="cards"></main>

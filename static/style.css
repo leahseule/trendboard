@@ -848,3 +848,24 @@ a.selected-item-row:hover .selected-item-title {
   pointer-events: none;
   transform: translateY(6px);
 }
+
+.trend-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.clear-selection-btn {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.clear-selection-btn:hover { color: var(--text); }
+
+.clear-selection-btn.hidden { display: none; }

@@ -129,6 +129,18 @@ function updateTrendbar() {
   countEl.textContent = n;
   countEl.classList.toggle("hidden", n === 0);
   $("#trendBtn").disabled = n < 1;
+  $("#clearSelectionBtn").classList.toggle("hidden", n < 1);
+}
+
+// 소스 탭을 옮겨다니면 이전에 고른 카드가 화면에서 안 보이게 될 수 있어서, 일일이
+// 찾아가서 해제하지 않아도 한 번에 전체 선택 해제할 수 있게.
+function onClearSelection() {
+  state.selected.forEach((id) => {
+    const card = document.getElementById(`card-${id}`);
+    if (card) card.classList.remove("selected");
+  });
+  state.selected.clear();
+  updateTrendbar();
 }
 
 // API를 쓰지 않고, 같은 분석 요청을 사용자 본인의 ChatGPT/Claude 계정으로 넘긴다
@@ -239,6 +251,7 @@ async function init() {
   $("#backToTopBtn").addEventListener("click", onBackToTop);
   window.addEventListener("scroll", onScrollToggleBackToTop, { passive: true });
   $("#trendBtn").addEventListener("click", openMethodModal);
+  $("#clearSelectionBtn").addEventListener("click", onClearSelection);
   $("#methodModalClose").addEventListener("click", closeMethodModal);
   $("#methodModalOverlay").addEventListener("click", (e) => {
     if (e.target.id === "methodModalOverlay") closeMethodModal();
